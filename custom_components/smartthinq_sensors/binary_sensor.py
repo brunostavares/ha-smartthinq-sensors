@@ -1,6 +1,7 @@
 """Support for MelCloud device bynary sensors."""
 import logging
 
+"AA"
 from .sensor import async_setup_sensors
 
 _LOGGER = logging.getLogger(__name__)
