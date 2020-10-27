@@ -51,9 +51,7 @@ class AcStatus(DeviceStatus):
         self._error = None
 
     def _get_run_state(self):
-        _LOGGER.warning(self._run_state)
         if not self._run_state:
-            _LOGGER.warning("aaaaaaaa")
             state = self.lookup_enum("airState.operation")
             if not state:
                 self._run_state = state
