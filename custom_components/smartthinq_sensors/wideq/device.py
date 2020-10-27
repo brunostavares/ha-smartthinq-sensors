@@ -289,13 +289,13 @@ class ModelInfo(object):
         Return either an `EnumValue` or a `RangeValue`.
         """
         d = self._data["Value"][name]
-        if d["type"] in ("Enum", "enum"):
-            return EnumValue(d["option"])
-        elif d["type"] == "Range":
+        if d["data_type"] in ("Enum", "enum"):
+            return EnumValue(d["value_mapping"])
+        elif d["data_type"] == "range":
             return RangeValue(
-                d["option"]["min"], d["option"]["max"], d["option"]["step"]
+                d["value_validation"]["min"], d["option"]["max"]
             )
-        elif d["type"] == "Bit":
+        elif d["data_type"] == "Bit":
             bit_values = {}
             for bit in d["option"]:
                 bit_values[bit["startbit"]] = {
@@ -303,15 +303,17 @@ class ModelInfo(object):
                     "length": bit["length"],
                 }
             return BitValue(bit_values)
-        elif d["type"] == "Reference":
+        elif d["data_type"] == "Reference":
             ref = d["option"][0]
             return ReferenceValue(self._data[ref])
-        elif d["type"] == "Boolean":
+        elif d["data_type"] == "Boolean":
             return EnumValue({"0": "False", "1": "True"})
-        elif d["type"] == "String":
-            pass
+        elif d["data_type"] == "String":
+            return RangeValue(
+                d["value_validation"]["min"], d["option"]["max"]
+            )
         else:
-            assert False, "unsupported value type {}".format(d["type"])
+            assert False, "unsupported value type {}".format(d["data_type"])
 
     def default(self, name):
         """Get the default value, if it exists, for a given value.
@@ -468,15 +470,19 @@ class ModelInfo(object):
         decoded = {}
         if self._data["Monitoring"]["type"] != "THINQ2":
             return decoded
-        info = data.get(key)
+        if key == "Ac":
+            info = data
+            protocol = self._data["Value"]
+        else:
+            info = data.get(key)
+            protocol = self._data["Monitoring"]["protocol"]
         if not info:
-            return decoded
-        protocol = self._data["Monitoring"]["protocol"]
+            return decoded           
         for data_key, value_key in protocol.items():
             value = info.get(data_key, "")
             if value is not None and isinstance(value, Number):
                 value = int(value)
-            decoded[value_key] = str(value)
+            decoded[data_key] = str(value)
         return decoded
 
 
@@ -749,7 +755,7 @@ class Device(object):
                 )
 
             model_data = self._model_data
-            if model_data.get("Monitoring") and model_data.get("Value"):
+            if model_data.get("Value"):
                 self._model_info = ModelInfo(model_data)
             elif model_data.get("MonitoringValue"):
                 self._model_info = ModelInfoV2(model_data)

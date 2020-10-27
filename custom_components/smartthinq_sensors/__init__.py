@@ -17,6 +17,7 @@ from .wideq.dishwasher import DishWasherDevice
 from .wideq.dryer import DryerDevice
 from .wideq.washer import WasherDevice
 from .wideq.refrigerator import RefrigeratorDevice
+from .wideq.ac import AcDevice
 
 from .wideq.core_exceptions import (
     InvalidCredentialError,
@@ -493,6 +494,8 @@ async def lge_devices_setup(hass, client) -> dict:
             dev = LGEDevice(DishWasherDevice(client, device), device_name)
         elif device.type == DeviceType.REFRIGERATOR:
             dev = LGEDevice(RefrigeratorDevice(client, device), device_name)
+            elif device.type == DeviceType.AC:
+            dev = LGEDevice(AcDevice(client, device), device_name)
 
         if dev:
             result = await hass.async_add_executor_job(dev.init_device)

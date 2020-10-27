@@ -16,6 +16,7 @@ from homeassistant.components.binary_sensor import DEVICE_CLASS_PROBLEM, DEVICE_
 from homeassistant.helpers.dispatcher import async_dispatcher_connect, dispatcher_send
 from homeassistant.helpers.entity import Entity
 
+
 from homeassistant.const import (
     DEVICE_CLASS_TEMPERATURE,
     STATE_ON,
@@ -159,6 +160,36 @@ DRYER_BINARY_SENSORS = {
     },
 }
 
+AC_SENSORS = {
+    DEFAULT_SENSOR: {
+        ATTR_MEASUREMENT_NAME: "Default",
+        ATTR_ICON: "mdi:tumble-dryer",
+        ATTR_UNIT_FN: lambda x: None,
+        ATTR_DEVICE_CLASS: None,
+        ATTR_VALUE_FN: lambda x: x._power_state,
+        ATTR_ENABLED_FN: lambda x: True,
+    },
+}
+
+AC_BINARY_SENSORS = {
+    ATTR_RUN_COMPLETED: {
+        ATTR_MEASUREMENT_NAME: "Dry Completed",
+        ATTR_ICON: None,
+        ATTR_UNIT_FN: lambda x: None,
+        ATTR_DEVICE_CLASS: None,
+        ATTR_VALUE_FN: lambda x: x._run_completed,
+        ATTR_ENABLED_FN: lambda x: True,
+    },
+    ATTR_ERROR_STATE: {
+        ATTR_MEASUREMENT_NAME: "Error State",
+        ATTR_ICON: None,
+        ATTR_UNIT_FN: lambda x: None,
+        ATTR_DEVICE_CLASS: DEVICE_CLASS_PROBLEM,
+        ATTR_VALUE_FN: lambda x: x._error_state,
+        ATTR_ENABLED_FN: lambda x: True,
+    },
+}
+
 DISHWASHER_SENSORS = {
     DEFAULT_SENSOR: {
         ATTR_MEASUREMENT_NAME: "Default",
@@ -239,6 +270,7 @@ async def async_setup_sensors(hass, config_entry, async_add_entities, type_binar
     dryer_sensors = DRYER_BINARY_SENSORS if type_binary else DRYER_SENSORS
     dishwasher_sensors = DISHWASHER_BINARY_SENSORS if type_binary else DISHWASHER_SENSORS
     refrigerator_sensors = REFRIGERATOR_BINARY_SENSORS if type_binary else REFRIGERATOR_SENSORS
+    ac_sensors = AC_BINARY_SENSORS if type_binary else AC_SENSORS
 
     entry_config = hass.data[DOMAIN]
     lge_devices = entry_config.get(LGE_DEVICES, [])
@@ -256,6 +288,14 @@ async def async_setup_sensors(hass, config_entry, async_add_entities, type_binar
             LGEDryerSensor(lge_device, measurement, definition, type_binary)
             for measurement, definition in dryer_sensors.items()
             for lge_device in lge_devices.get(DeviceType.DRYER, [])
+            if definition[ATTR_ENABLED_FN](lge_device)
+        ]
+    )
+        lge_sensors.extend(
+        [
+            LGEAcSensor(lge_device, measurement, definition, type_binary)
+            for measurement, definition in ac_sensors.items()
+            for lge_device in lge_devices.get(DeviceType.AC, [])
             if definition[ATTR_ENABLED_FN](lge_device)
         ]
     )
@@ -763,6 +803,59 @@ class LGEDryerSensor(LGESensor):
             mode = self._api.state.childlock_state
             return mode
         return None
+
+class LGEAcSensor(LGESensor):
+    """A sensor to monitor LGE Dryer devices"""
+
+    @property
+    def device_state_attributes(self):
+        """Return the optional state attributes."""
+        if not self._is_default:
+            return None
+
+        data = {
+            ATTR_RUN_COMPLETED: self._run_completed,
+            ATTR_ERROR_STATE: self._error_state,
+            ATTR_ERROR_MSG: self._error_msg,
+            ATTR_RUN_STATE: self._current_run_state,
+            #ATTR_PRE_STATE: self._pre_state,
+            #ATTR_CURRENT_COURSE: self._current_course,
+            #ATTR_TEMPCONTROL_OPTION_STATE: self._tempcontrol_option_state,
+            #ATTR_DRYLEVEL_OPTION_STATE: self._drylevel_option_state,
+            # ATTR_TIMEDRY_OPTION_STATE: self._timedry_option_state,
+            #ATTR_REMAIN_TIME: self._remain_time,
+            #ATTR_INITIAL_TIME: self._initial_time,
+            #ATTR_RESERVE_TIME: self._reserve_time,
+            #ATTR_DOORLOCK_MODE: self._doorlock_mode,
+            #ATTR_CHILDLOCK_MODE: self._childlock_mode,
+        }
+        return data
+
+    @property
+    def _run_completed(self):
+        return STATE_ON
+
+    @property
+    def _error_state(self):
+        if self._api.state:
+            if self._api.state.is_error:
+                return STATE_ON
+        return STATE_OFF
+
+    @property
+    def _error_msg(self):
+        if self._api.state:
+            error = self._api.state.error_state
+            return error
+        return "-"
+
+
+    @property
+    def _current_run_state(self):
+        if self._api.state:
+            run_state = self._api.state.run_state
+            return run_state
+        return "-"
 
 
 class LGEDishWasherSensor(LGESensor):
