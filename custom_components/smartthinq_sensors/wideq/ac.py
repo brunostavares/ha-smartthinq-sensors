@@ -89,9 +89,4 @@ class AcStatus(DeviceStatus):
 
     @property
     def is_error(self):
-        if not self.is_on:
-            return False
-        error = self._get_error()
-        if error in STATE_AC_ERROR_NO_ERROR or error == STATE_AC_ERROR_OFF:
-            return False
-        return True
+        return False

@@ -173,11 +173,11 @@ AC_SENSORS = {
 
 AC_BINARY_SENSORS = {
     ATTR_RUN_COMPLETED: {
-        ATTR_MEASUREMENT_NAME: "Dry Completed",
+        ATTR_MEASUREMENT_NAME: "Turn on",
         ATTR_ICON: None,
         ATTR_UNIT_FN: lambda x: None,
         ATTR_DEVICE_CLASS: None,
-        ATTR_VALUE_FN: lambda x: x._run_completed,
+        ATTR_VALUE_FN: lambda x: x._power_state,
         ATTR_ENABLED_FN: lambda x: True,
     },
     ATTR_ERROR_STATE: {
@@ -839,6 +839,7 @@ class LGEAcSensor(LGESensor):
     def _error_state(self):
         if self._api.state:
             if self._api.state.is_error:
+                # self._api.state = AcStatus ac.py
                 return STATE_ON
         return STATE_OFF
 
