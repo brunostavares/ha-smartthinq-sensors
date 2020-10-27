@@ -815,8 +815,8 @@ class LGEAcSensor(LGESensor):
 
         data = {
             ATTR_RUN_COMPLETED: self._run_completed,
-            ATTR_ERROR_STATE: self._error_state,
-            ATTR_ERROR_MSG: self._error_msg,
+            #ATTR_ERROR_STATE: self._error_state,
+            #ATTR_ERROR_MSG: self._error_msg,
             ATTR_RUN_STATE: self._current_run_state,
             #ATTR_PRE_STATE: self._pre_state,
             #ATTR_CURRENT_COURSE: self._current_course,

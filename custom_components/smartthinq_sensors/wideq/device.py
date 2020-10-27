@@ -279,7 +279,7 @@ class ModelInfo(object):
 
     def value_type(self, name):
         if name in self._data["Value"]:
-            return self._data["Value"][name]["type"]
+            return self._data["Value"][name]["data_type"]
         else:
             return None
 
