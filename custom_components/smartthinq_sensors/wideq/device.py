@@ -468,8 +468,8 @@ class ModelInfo(object):
     def decode_snapshot(self, data, key):
         """Decode  status data."""
         decoded = {}
-        if self._data["Monitoring"]["type"] != "THINQ2":
-            return decoded
+        #if self._data["Monitoring"]["type"] != "THINQ2":
+        #    return decoded
         if key == "Ac":
             info = data
             protocol = self._data["Value"]
