@@ -494,7 +494,7 @@ async def lge_devices_setup(hass, client) -> dict:
             dev = LGEDevice(DishWasherDevice(client, device), device_name)
         elif device.type == DeviceType.REFRIGERATOR:
             dev = LGEDevice(RefrigeratorDevice(client, device), device_name)
-            elif device.type == DeviceType.AC:
+        elif device.type == DeviceType.AC:
             dev = LGEDevice(AcDevice(client, device), device_name)
 
         if dev:

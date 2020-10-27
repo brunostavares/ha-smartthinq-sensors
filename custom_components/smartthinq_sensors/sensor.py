@@ -291,7 +291,7 @@ async def async_setup_sensors(hass, config_entry, async_add_entities, type_binar
             if definition[ATTR_ENABLED_FN](lge_device)
         ]
     )
-        lge_sensors.extend(
+    lge_sensors.extend(
         [
             LGEAcSensor(lge_device, measurement, definition, type_binary)
             for measurement, definition in ac_sensors.items()
