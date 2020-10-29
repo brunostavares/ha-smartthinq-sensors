@@ -10,6 +10,7 @@ from .device import (
 _LOGGER = logging.getLogger(__name__)
 
 STATE_AC_POWER_OFF = "@AC_MAIN_OPERATION_OFF_W"
+
 STATE_AC_ERROR_OFF = "OFF"
 
 STATE_AC_ERROR_NO_ERROR = [
@@ -68,6 +69,13 @@ class AcStatus(DeviceStatus):
                 self._error = error
         return self._error
 
+    def _get_temp_val_v2(self, key):
+        temp = self.int_or_none(self._data.get(key))
+        if not temp:
+            return STATE_OPTIONITEM_NONE
+        temp = str(temp)
+        return temp
+
     @property
     def is_on(self):
         run_state = self._get_run_state()
@@ -90,3 +98,7 @@ class AcStatus(DeviceStatus):
     @property
     def is_error(self):
         return False
+
+    @property
+    def ac_current_temp(self):
+        return self._get_temp_val_v2("airState.tempState.current")

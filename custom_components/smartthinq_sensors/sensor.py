@@ -68,6 +68,9 @@ ATTR_TEMPCONTROL_OPTION_STATE = "tempcontrol_option_state"
 ATTR_DRYLEVEL_OPTION_STATE = "drylevel_option_state"
 ATTR_TIMEDRY_OPTION_STATE = "timedry_option_state"
 
+# ac sensor attributes
+ATTR_AC_CURRENT_TEMP = "tempState_current"
+
 # dishwasher sensor attributes
 ATTR_PROCESS_STATE = "process_state"
 ATTR_DELAYSTART_MODE = "delay_start_mode"
@@ -163,10 +166,18 @@ DRYER_BINARY_SENSORS = {
 AC_SENSORS = {
     DEFAULT_SENSOR: {
         ATTR_MEASUREMENT_NAME: "Default",
-        ATTR_ICON: "mdi:tumble-dryer",
+        ATTR_ICON: "mdi:air-conditioner",
         ATTR_UNIT_FN: lambda x: None,
         ATTR_DEVICE_CLASS: None,
         ATTR_VALUE_FN: lambda x: x._power_state,
+        ATTR_ENABLED_FN: lambda x: True,
+    },
+        ATTR_AC_CURRENT_TEMP: {
+        ATTR_MEASUREMENT_NAME: "Temperatura ambiente",
+        ATTR_ICON: None,
+        ATTR_UNIT_FN: lambda x: x._temp_unit,
+        ATTR_DEVICE_CLASS: DEVICE_CLASS_TEMPERATURE,
+        ATTR_VALUE_FN: lambda x: x._ac_current_temp,
         ATTR_ENABLED_FN: lambda x: True,
     },
 }
@@ -814,7 +825,9 @@ class LGEAcSensor(LGESensor):
             return None
 
         data = {
-            ATTR_RUN_COMPLETED: self._run_completed,
+            ATTR_TEMP_UNIT: self._temp_unit,
+            ATTR_AC_CURRENT_TEMP: self._ac_current_temp,
+            #ATTR_RUN_COMPLETED: self._run_completed,
             #ATTR_ERROR_STATE: self._error_state,
             #ATTR_ERROR_MSG: self._error_msg,
             ATTR_RUN_STATE: self._current_run_state,
@@ -857,6 +870,14 @@ class LGEAcSensor(LGESensor):
             run_state = self._api.state.run_state
             return run_state
         return "-"
+
+    @property
+    def _temp_unit(self):
+        return TEMP_CELSIUS
+
+    @property
+    def _ac_current_temp(self):
+        return self._api.state.ac_current_temp
 
 
 class LGEDishWasherSensor(LGESensor):
