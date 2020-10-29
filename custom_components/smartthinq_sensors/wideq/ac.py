@@ -112,6 +112,5 @@ class AcStatus(DeviceStatus):
         return self._get_temp_val_v2("airState.tempState.current")
 
     @property
-    def ac_power_consumpion(self)
+    def ac_power_consumpion(self):
         return self._get_energy_kw("airState.energy.onCurrent")
-
