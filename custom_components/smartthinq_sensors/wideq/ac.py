@@ -76,11 +76,11 @@ class AcStatus(DeviceStatus):
         temp = str(temp)
         return temp
 
-    def _get_energy_kw(self,key):
+    def _get_energy_kw(self, key):
         power = self._data.get(key)
         if not power:
             return STATE_OPTIONITEM_NONE
-        power = str(power/1000)
+        power = str(int(power)/1000)
         return power
 
 
