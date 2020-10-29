@@ -889,7 +889,7 @@ class LGEAcSensor(LGESensor):
         return self._api.state.ac_current_temp
 
     @property
-    def _ac_power_consumption(self)
+    def _ac_power_consumption(self):
         return self._api.state.ac_power_consumpion
 
 class LGEDishWasherSensor(LGESensor):
