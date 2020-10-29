@@ -179,7 +179,7 @@ AC_SENSORS = {
         ATTR_MEASUREMENT_NAME: "Temperatura ambiente",
         ATTR_ICON: None,
         ATTR_UNIT_FN: lambda x: x._temp_unit,
-        ATTR_DEVICE_CLASS: DEVICE_CLASS_TEMPERATURE,
+        ATTR_DEVICE_CLASS: lambda x: x._energy_unit,
         ATTR_VALUE_FN: lambda x: x._ac_current_temp,
         ATTR_ENABLED_FN: lambda x: True,
     },
@@ -885,11 +885,12 @@ class LGEAcSensor(LGESensor):
     @property
     def _temp_unit(self):
         return TEMP_CELSIUS
-
+    @property
+    def _energy_unit(self):
+        return DEVICE_CLASS_TEMPERATURE
     @property
     def _ac_current_temp(self):
         return self._api.state.ac_current_temp
-
     @property
     def _ac_power_consumption(self):
         return self._api.state.ac_power_consumpion
