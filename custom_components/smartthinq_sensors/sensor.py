@@ -172,7 +172,7 @@ AC_SENSORS = {
         ATTR_VALUE_FN: lambda x: x._power_state,
         ATTR_ENABLED_FN: lambda x: True,
     },
-        ATTR_AC_CURRENT_TEMP: {
+    ATTR_AC_CURRENT_TEMP: {
         ATTR_MEASUREMENT_NAME: "Temperatura ambiente",
         ATTR_ICON: None,
         ATTR_UNIT_FN: lambda x: x._temp_unit,

@@ -70,7 +70,7 @@ class AcStatus(DeviceStatus):
         return self._error
 
     def _get_temp_val_v2(self, key):
-        temp = self.int_or_none(self._data.get(key))
+        temp = self._data.get(key)
         if not temp:
             return STATE_OPTIONITEM_NONE
         temp = str(temp)
