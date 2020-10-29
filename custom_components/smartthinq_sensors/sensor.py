@@ -887,7 +887,7 @@ class LGEAcSensor(LGESensor):
         return TEMP_CELSIUS
     @property
     def _energy_unit(self):
-        return DEVICE_CLASS_TEMPERATURE
+        return ENERGY_KILO_WATT_HOUR
     @property
     def _ac_current_temp(self):
         return self._api.state.ac_current_temp
