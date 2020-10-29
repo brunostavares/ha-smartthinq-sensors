@@ -19,11 +19,13 @@ from homeassistant.helpers.entity import Entity
 
 from homeassistant.const import (
     DEVICE_CLASS_TEMPERATURE,
+    DEVICE_CLASS_ENERGY,
     STATE_ON,
     STATE_OFF,
     STATE_UNAVAILABLE,
     TEMP_CELSIUS,
-    TEMP_FAHRENHEIT
+    TEMP_FAHRENHEIT,
+    ENERGY_KILO_WATT_HOUR
 )
 
 from .const import DOMAIN, LGE_DEVICES
@@ -184,7 +186,7 @@ AC_SENSORS = {
         ATTR_AC_POWER_CONSUMPTION: {
         ATTR_MEASUREMENT_NAME: "consumo de energia",
         ATTR_ICON: None,
-        ATTR_UNIT_FN: "kWh",
+        ATTR_UNIT_FN: ENERGY_KILO_WATT_HOUR,
         ATTR_DEVICE_CLASS: DEVICE_CLASS_ENERGY,
         ATTR_VALUE_FN: lambda x: x._ac_power_consumption,
         ATTR_ENABLED_FN: lambda x: True,
