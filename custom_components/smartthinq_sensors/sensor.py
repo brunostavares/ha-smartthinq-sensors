@@ -70,6 +70,7 @@ ATTR_TIMEDRY_OPTION_STATE = "timedry_option_state"
 
 # ac sensor attributes
 ATTR_AC_CURRENT_TEMP = "tempState_current"
+ATTR_AC_POWER_CONSUMPTION = "consumo_de_energia"
 
 # dishwasher sensor attributes
 ATTR_PROCESS_STATE = "process_state"
@@ -178,6 +179,14 @@ AC_SENSORS = {
         ATTR_UNIT_FN: lambda x: x._temp_unit,
         ATTR_DEVICE_CLASS: DEVICE_CLASS_TEMPERATURE,
         ATTR_VALUE_FN: lambda x: x._ac_current_temp,
+        ATTR_ENABLED_FN: lambda x: True,
+    },
+        ATTR_AC_POWER_CONSUMPTION: {
+        ATTR_MEASUREMENT_NAME: "consumo de energia",
+        ATTR_ICON: None,
+        ATTR_UNIT_FN: "kWh",
+        ATTR_DEVICE_CLASS: DEVICE_CLASS_ENERGY,
+        ATTR_VALUE_FN: lambda x: x._ac_power_consumption,
         ATTR_ENABLED_FN: lambda x: True,
     },
 }
@@ -827,6 +836,7 @@ class LGEAcSensor(LGESensor):
         data = {
             ATTR_TEMP_UNIT: self._temp_unit,
             ATTR_AC_CURRENT_TEMP: self._ac_current_temp,
+            ATTR_AC_POWER_CONSUMPTION: self._ac_power_consumption,
             #ATTR_RUN_COMPLETED: self._run_completed,
             #ATTR_ERROR_STATE: self._error_state,
             #ATTR_ERROR_MSG: self._error_msg,
@@ -863,7 +873,6 @@ class LGEAcSensor(LGESensor):
             return error
         return "-"
 
-
     @property
     def _current_run_state(self):
         if self._api.state:
@@ -879,6 +888,9 @@ class LGEAcSensor(LGESensor):
     def _ac_current_temp(self):
         return self._api.state.ac_current_temp
 
+    @property
+    def _ac_power_consumption(self)
+        return self._api.state.ac_power_consumpion
 
 class LGEDishWasherSensor(LGESensor):
     """A sensor to monitor LGE DishWasher devices"""

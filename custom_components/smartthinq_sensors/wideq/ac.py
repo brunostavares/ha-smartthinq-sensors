@@ -76,6 +76,14 @@ class AcStatus(DeviceStatus):
         temp = str(temp)
         return temp
 
+    def _get_energy_kw(self,key):
+        power = self._data.get(key)
+        if not power:
+            return STATE_OPTIONITEM_NONE
+        power = str(power/1000)
+        return power
+
+
     @property
     def is_on(self):
         run_state = self._get_run_state()
@@ -102,3 +110,8 @@ class AcStatus(DeviceStatus):
     @property
     def ac_current_temp(self):
         return self._get_temp_val_v2("airState.tempState.current")
+
+    @property
+    def ac_power_consumpion(self)
+        return self._get_energy_kw("airState.energy.onCurrent")
+
