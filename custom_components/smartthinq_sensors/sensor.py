@@ -183,7 +183,7 @@ AC_SENSORS = {
         ATTR_VALUE_FN: lambda x: x._ac_current_temp,
         ATTR_ENABLED_FN: lambda x: True,
     },
-        ATTR_AC_POWER_CONSUMPTION: {
+    ATTR_AC_POWER_CONSUMPTION: {
         ATTR_MEASUREMENT_NAME: "consumo de energia",
         ATTR_ICON: None,
         ATTR_UNIT_FN: lambda x: x._energy_unit,
