@@ -12,6 +12,8 @@ from .wideq.device import (
     DeviceType,
 )
 
+from homeassistant.const import CONF_REGION, CONF_TOKEN
+
 from homeassistant.components.binary_sensor import DEVICE_CLASS_PROBLEM, DEVICE_CLASS_OPENING
 from homeassistant.helpers.dispatcher import async_dispatcher_connect, dispatcher_send
 from homeassistant.helpers.entity import Entity
@@ -38,7 +40,7 @@ from homeassistant.const import (
     ENERGY_KILO_WATT_HOUR
 )
 
-from .const import DOMAIN, LGE_DEVICES
+from .const import DOMAIN, LGE_DEVICES, CONF_LANGUAGE, CONF_OAUTH_URL, CONF_OAUTH_USER_NUM
 from . import LGEDevice
 
 # sensor definition
@@ -306,7 +308,6 @@ async def async_setup_sensors(hass, config_entry, async_add_entities, type_binar
     oauth_url = config_entry.data.get(CONF_OAUTH_URL)
     oauth_user_num = config_entry.data.get(CONF_OAUTH_USER_NUM)
 
-    _LOGGER.info(STARTUP)
     _LOGGER.info(
         "Initializing SmartThinQ platform with region: %s - language: %s",
         region,
@@ -332,19 +333,18 @@ def _ac_devices(hass, client):
     persistent_notification = hass.components.persistent_notification
 
     for device in client.devices:
-        if device.type == wideq.DeviceType.AC:
-            try:
-                d = LGESensor(client, device)
-            except wideq.NotConnectedError:
-                LOGGER.error(
-                    'SmartThinQ device not available: %s', device.name
-                )
-                persistent_notification.async_create(
-                    'SmartThinQ device not available: %s' % device.name,
-                    title='SmartThinQ Error',
-                )
-            else:
-                yield d
+        try:
+            d = LGESensor(client, device)
+        except wideq.NotConnectedError:
+            LOGGER.error(
+                'SmartThinQ device not available: %s', device.name
+            )
+            persistent_notification.async_create(
+                'SmartThinQ device not available: %s' % device.name,
+                title='SmartThinQ Error',
+            )
+        else:
+            yield d
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set up the LGE sensors."""
@@ -359,6 +359,36 @@ class LGESensor(ClimateEntity):
         self._name_slug = device.name
         self._is_default = DEFAULT_SENSOR
         self._unsub_dispatcher = None
+
+    @property
+    def temperature_unit(self):
+        return TEMP_CELSIUS
+
+    @property
+    def hvac_modes(self):
+        return [c_const.HVAC_MODE_OFF]
+
+    @property
+    def hvac_mode(self):
+        return "Selected mode"
+
+    def set_hvac_mode(self, hvac_mode):
+        _LOGGER.warning(hvac_mode)
+        return
+
+    @property
+    def fan_modes(self):
+        import wideq
+        return ["aaaaaaaaaaaaaaaaaaa"]
+
+    @property
+    def supported_features(self):
+        return (
+            c_const.SUPPORT_TARGET_TEMPERATURE |
+            c_const.SUPPORT_FAN_MODE |
+            c_const.SUPPORT_SWING_MODE
+        )
+
 
     @staticmethod
     def format_time(hours, minutes):

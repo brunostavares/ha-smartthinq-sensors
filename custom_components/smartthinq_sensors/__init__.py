@@ -27,7 +27,7 @@ from .wideq.core_exceptions import (
 )
 
 import voluptuous as vol
-import homeassistant.helpers.config_validation as cv
+#import homeassistant.helpers.config_validation as cv
 
 from homeassistant import config_entries
 from homeassistant.exceptions import ConfigEntryNotReady
@@ -35,6 +35,10 @@ from homeassistant.helpers.typing import HomeAssistantType
 from homeassistant.util import Throttle
 
 from homeassistant.const import CONF_REGION, CONF_TOKEN
+
+from homeassistant.helpers import config_validation as cv, entity_platform, service
+
+
 
 from .const import (
     ATTR_CONFIG,
@@ -202,6 +206,19 @@ async def async_setup_entry(hass: HomeAssistantType, config_entry):
             hass.config_entries.async_forward_entry_setup(config_entry, platform)
         )
 
+    platforma = entity_platform.current_platform.get()
+    platforma.async_register_entity_service(
+        "servico",
+        {
+            vol.Required('sleep_time'): cv.time_period,
+        },
+        "custom_set_sleep_timer",
+    )
+
+    async def custom_set_sleep_timer(entity, service_call):
+        _LOGGER.warning(entity)
+        _LOGGER.warning(service_call.data)
+    
     return True
 
 
