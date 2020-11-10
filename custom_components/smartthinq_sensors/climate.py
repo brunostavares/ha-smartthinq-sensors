@@ -292,6 +292,7 @@ REFRIGERATOR_BINARY_SENSORS = {
 
 
 def setup_platform(hass, config, async_add_entities, discovery_info=None):
+    _LOGGER.warning("ISSSSOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
     pass
 
 
