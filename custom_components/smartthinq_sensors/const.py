@@ -2,11 +2,11 @@
 Support to interface with LGE ThinQ Devices.
 """
 
-__version__ = "0.1b"
-PROJECT_URL = "https://github.com/brunostavares/ha-smartthinq-sensors"
+__version__ = "0.5.10"
+PROJECT_URL = "https://github.com/ollo69/ha-smartthinq-sensors/"
 ISSUE_URL = "{}issues".format(PROJECT_URL)
 
-DOMAIN = "smartthinq_hvac"
+DOMAIN = "smartthinq_sensors"
 
 CONF_LANGUAGE = "language"
 CONF_OAUTH_URL = "outh_url"
