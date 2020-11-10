@@ -38,7 +38,7 @@ from homeassistant.const import (
     ENERGY_KILO_WATT_HOUR
 )
 
-from .const import DOMAIN, LGE_DEVICES
+from .const import DOMAIN, LGE_DEVICES, CONF_TOKEN, CONF_REGION, CONF_LANGUAGE, CONF_USE_API_V2, CONF_OAUTH_URL, CONF_OAUTH_USER_NUM
 from . import LGEDevice
 
 # sensor definition
@@ -307,7 +307,6 @@ async def async_setup_sensors(hass, config_entry, async_add_entities, type_binar
     oauth_url = config_entry.data.get(CONF_OAUTH_URL)
     oauth_user_num = config_entry.data.get(CONF_OAUTH_USER_NUM)
 
-    _LOGGER.info(STARTUP)
     _LOGGER.info(
         "Initializing SmartThinQ platform with region: %s - language: %s",
         region,
@@ -378,6 +377,36 @@ class LGESensor(ClimateEntity):
             return ":0".join(remain_time)
         else:
             return ":".join(remain_time)
+    
+
+    def set_hvac_mode(self, hvac_mode):
+        if hvac_mode == c_const.HVAC_MODE_OFF:
+            self._ac.set_on(False)
+            return
+    @property
+    def hvac_mode(self):
+        return "MODO ATUAL"
+
+    @property
+    def fan_mode(self):
+        return "MODO FAN"
+
+    @property
+    def hvac_modes(self):
+        return [c_const.HVAC_MODE_OFF]
+
+    @property
+    def supported_features(self):
+        return (
+            c_const.SUPPORT_TARGET_TEMPERATURE |
+            c_const.SUPPORT_FAN_MODE |
+            c_const.SUPPORT_SWING_MODE
+        )
+
+    @property
+    def temperature_unit(self):
+        return TEMP_CELSIUS
+
 
     @property
     def name(self) -> str:
@@ -405,8 +434,7 @@ class LGESensor(ClimateEntity):
 
     def update(self):
         """Update the device status"""
-        self._api.device_update()
-        dispatcher_send(self.hass, self._dispatcher_queue)
+        _LOGGER.info("Update")
 
     async def async_added_to_hass(self):
         """Register update dispatcher."""
