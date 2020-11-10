@@ -2,11 +2,11 @@
 Support to interface with LGE ThinQ Devices.
 """
 
-__version__ = "0.5.10"
-PROJECT_URL = "https://github.com/ollo69/ha-smartthinq-sensors/"
+__version__ = "0.1b"
+PROJECT_URL = "https://github.com/brunostavares/ha-smartthinq-sensors"
 ISSUE_URL = "{}issues".format(PROJECT_URL)
 
-DOMAIN = "smartthinq_sensors"
+DOMAIN = "smartthinq_hvac"
 
 CONF_LANGUAGE = "language"
 CONF_OAUTH_URL = "outh_url"
@@ -18,7 +18,7 @@ CLIENT = "client"
 LGE_DEVICES = "lge_devices"
 
 SMARTTHINQ_COMPONENTS = [
-    "sensor", "binary_sensor"
+    "climate"
 ]
 
 STARTUP = """

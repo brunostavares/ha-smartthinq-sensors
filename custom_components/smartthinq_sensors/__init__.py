@@ -10,13 +10,8 @@ from datetime import timedelta
 from requests import exceptions as reqExc
 from typing import Dict
 
-from .wideq.core import Client
 from .wideq.core_v2 import ClientV2
 from .wideq.device import DeviceType
-from .wideq.dishwasher import DishWasherDevice
-from .wideq.dryer import DryerDevice
-from .wideq.washer import WasherDevice
-from .wideq.refrigerator import RefrigeratorDevice
 from .wideq.ac import AcDevice
 
 from .wideq.core_exceptions import (
@@ -59,6 +54,7 @@ MAX_UPDATE_FAIL_ALLOWED = 10
 # not stress to match cloud if multiple call
 MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=10)
 
+"""
 SMARTTHINQ_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_TOKEN): str,
@@ -76,7 +72,7 @@ CONFIG_SCHEMA = vol.Schema(
     ),
     extra=vol.ALLOW_EXTRA,
 )
-
+"""
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -88,11 +84,7 @@ class LGEAuthentication:
         self._use_api_v2 = use_api_v2
 
     def _create_client(self):
-        if self._use_api_v2:
-            client = ClientV2(country=self._region, language=self._language)
-        else:
-            client = Client(country=self._region, language=self._language)
-
+        client = ClientV2(country=self._region, language=self._language)
         return client
 
     def getLoginUrl(self) -> str:
@@ -111,10 +103,7 @@ class LGEAuthentication:
 
         oauth_info = None
         try:
-            if self._use_api_v2:
-                oauth_info = ClientV2.oauthinfo_from_url(callback_url)
-            else:
-                oauth_info = Client.oauthinfo_from_url(callback_url)
+            oauth_info = ClientV2.oauthinfo_from_url(callback_url)
         except Exception:
             _LOGGER.exception("Error retrieving OAuth info from ThinQ")
 
@@ -124,12 +113,9 @@ class LGEAuthentication:
 
         client = None
         try:
-            if self._use_api_v2:
-                client = ClientV2.from_token(
-                    oauth_url, token, oauth_user_num, self._region, self._language
-                )
-            else:
-                client = Client.from_token(token, self._region, self._language)
+            client = ClientV2.from_token(
+                oauth_url, token, oauth_user_num, self._region, self._language
+            )
         except Exception:
             _LOGGER.exception("Error connecting to ThinQ")
 
@@ -486,15 +472,7 @@ async def lge_devices_setup(hass, client) -> dict:
         result = False
         device_count += 1
 
-        if device.type == DeviceType.WASHER:
-            dev = LGEDevice(WasherDevice(client, device), device_name)
-        elif device.type == DeviceType.DRYER:
-            dev = LGEDevice(DryerDevice(client, device), device_name)
-        elif device.type == DeviceType.DISHWASHER:
-            dev = LGEDevice(DishWasherDevice(client, device), device_name)
-        elif device.type == DeviceType.REFRIGERATOR:
-            dev = LGEDevice(RefrigeratorDevice(client, device), device_name)
-        elif device.type == DeviceType.AC:
+        if device.type == DeviceType.AC:
             dev = LGEDevice(AcDevice(client, device), device_name)
 
         if dev:
