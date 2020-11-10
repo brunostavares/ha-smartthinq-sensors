@@ -88,6 +88,9 @@ CONFIG_SCHEMA = vol.Schema(
     extra=vol.ALLOW_EXTRA,
 )
 
+SMARTTHINQ_COMPONENTS = [
+    'climate',
+]
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -146,8 +149,13 @@ class LGEAuthentication:
 
         return client
 
+def setup(hass, config):
+    for component in SMARTTHINQ_COMPONENTS:
+        discovery.load_platform(hass, component, DOMAIN, {}, config)
+    return True
 
-def setup_platform(hass, config, add_devices, discovery_info=None):
+
+async def setup_platform(hass, config, add_devices, discovery_info=None):
     
     config_entry = hass.data[DOMAIN]
     
