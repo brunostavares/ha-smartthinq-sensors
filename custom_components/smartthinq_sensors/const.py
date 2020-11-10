@@ -18,7 +18,7 @@ CLIENT = "client"
 LGE_DEVICES = "lge_devices"
 
 SMARTTHINQ_COMPONENTS = [
-    "sensor", "binary_sensor"
+    "climate"
 ]
 
 STARTUP = """
