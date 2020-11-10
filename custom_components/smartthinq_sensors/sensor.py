@@ -24,6 +24,8 @@ except ImportError:
     from homeassistant.components.climate import ClimateDevice \
          as ClimateEntity
 
+from . import LGEAuthentication
+
 
 from homeassistant.const import (
     DEVICE_CLASS_TEMPERATURE,
@@ -295,59 +297,54 @@ def setup_platform(hass, config, async_add_entities, discovery_info=None):
 
 async def async_setup_sensors(hass, config_entry, async_add_entities, type_binary):
     """Set up LGE device sensors and bynary sensor based on config_entry."""
-    lge_sensors = []
-    washer_sensors = WASHER_BINARY_SENSORS if type_binary else WASHER_SENSORS
-    dryer_sensors = DRYER_BINARY_SENSORS if type_binary else DRYER_SENSORS
-    dishwasher_sensors = DISHWASHER_BINARY_SENSORS if type_binary else DISHWASHER_SENSORS
-    refrigerator_sensors = REFRIGERATOR_BINARY_SENSORS if type_binary else REFRIGERATOR_SENSORS
-    ac_sensors = AC_BINARY_SENSORS if type_binary else AC_SENSORS
 
-    entry_config = hass.data[DOMAIN]
-    lge_devices = entry_config.get(LGE_DEVICES, [])
 
-    lge_sensors.extend(
-        [
-            LGEWasherSensor(lge_device, measurement, definition, type_binary)
-            for measurement, definition in washer_sensors.items()
-            for lge_device in lge_devices.get(DeviceType.WASHER, [])
-            if definition[ATTR_ENABLED_FN](lge_device)
-        ]
-    )
-    lge_sensors.extend(
-        [
-            LGEDryerSensor(lge_device, measurement, definition, type_binary)
-            for measurement, definition in dryer_sensors.items()
-            for lge_device in lge_devices.get(DeviceType.DRYER, [])
-            if definition[ATTR_ENABLED_FN](lge_device)
-        ]
-    )
-    lge_sensors.extend(
-        [
-            LGEAcSensor(lge_device, measurement, definition, type_binary)
-            for measurement, definition in ac_sensors.items()
-            for lge_device in lge_devices.get(DeviceType.AC, [])
-            if definition[ATTR_ENABLED_FN](lge_device)
-        ]
-    )
-    lge_sensors.extend(
-        [
-            LGEDishWasherSensor(lge_device, measurement, definition, type_binary)
-            for measurement, definition in dishwasher_sensors.items()
-            for lge_device in lge_devices.get(DeviceType.DISHWASHER, [])
-            if definition[ATTR_ENABLED_FN](lge_device)
-        ]
-    )
-    lge_sensors.extend(
-        [
-            LGERefrigeratorSensor(lge_device, measurement, definition, type_binary)
-            for measurement, definition in refrigerator_sensors.items()
-            for lge_device in lge_devices.get(DeviceType.REFRIGERATOR, [])
-            if definition[ATTR_ENABLED_FN](lge_device)
-        ]
+    refresh_token = config_entry.data.get(CONF_TOKEN)
+    region = config_entry.data.get(CONF_REGION)
+    language = config_entry.data.get(CONF_LANGUAGE)
+    use_apiv2 = config_entry.data.get(CONF_USE_API_V2, False)
+    oauth_url = config_entry.data.get(CONF_OAUTH_URL)
+    oauth_user_num = config_entry.data.get(CONF_OAUTH_USER_NUM)
+
+    _LOGGER.info(STARTUP)
+    _LOGGER.info(
+        "Initializing SmartThinQ platform with region: %s - language: %s",
+        region,
+        language,
     )
 
-    async_add_entities(lge_sensors, True)
+    hass.data.setdefault(DOMAIN, {})[LGE_DEVICES] = {}
 
+    # if network is not connected we can have some error
+    # raising ConfigEntryNotReady platform setup will be retried
+    lgeauth = LGEAuthentication(region, language, use_apiv2)
+    client = await hass.async_add_executor_job(
+        lgeauth.createClientFromToken, refresh_token, oauth_url, oauth_user_num
+    )
+
+    async_add_entities(_ac_devices(hass, client), True)
+
+def _ac_devices(hass, client):
+    """Generate all the AC (climate) devices associated with the user's
+    LG account.
+    Log errors for devices that can't be used for whatever reason.
+    """
+    persistent_notification = hass.components.persistent_notification
+
+    for device in client.devices:
+        if device.type == wideq.DeviceType.AC:
+            try:
+                d = LGESensor(client, device)
+            except wideq.NotConnectedError:
+                LOGGER.error(
+                    'SmartThinQ device not available: %s', device.name
+                )
+                persistent_notification.async_create(
+                    'SmartThinQ device not available: %s' % device.name,
+                    title='SmartThinQ Error',
+                )
+            else:
+                yield d
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set up the LGE sensors."""
@@ -356,16 +353,12 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 
 
 class LGESensor(ClimateEntity):
-    def __init__(self, device: LGEDevice, measurement, definition, is_binary):
+    def __init__(self, client, device):
         """Initialize the sensor."""
         self._api = device
         self._name_slug = device.name
-        self._measurement = measurement
-        self._def = definition
-        self._is_binary = is_binary
-        self._is_default = self._measurement == DEFAULT_SENSOR
+        self._is_default = DEFAULT_SENSOR
         self._unsub_dispatcher = None
-        self._dispatcher_queue = f"{DISPATCHER_REMOTE_UPDATE}-{self._name_slug}"
 
     @staticmethod
     def format_time(hours, minutes):
@@ -387,11 +380,8 @@ class LGESensor(ClimateEntity):
 
     @property
     def name(self) -> str:
-        """Return the name of the sensor."""
-        if self._is_default:
-            return self._name_slug
-        return f"{self._name_slug} {self._def[ATTR_MEASUREMENT_NAME]}"
-
+        return self._name_slug
+    
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
@@ -430,15 +420,14 @@ class LGESensor(ClimateEntity):
                 self.hass, self._dispatcher_queue, async_state_update
             )
 
-        def set_swing_mode(self, swing_mode):
-            self._swing_mode = swing_mode
-            LOGGER.info('Setting swing mode to %s...', self._swing_mode)
+    def set_swing_mode(self, swing_mode):
+        self._swing_mode = swing_mode
+        LOGGER.info('Setting swing mode to %s...', self._swing_mode)
     
     @property
     def swing_modes(self):
         return ["AAAAAAAAAAAAAAAA"]
             
-
     @property
     def swing_mode(self):
         return "SWING_MODE_DEFAULT"
