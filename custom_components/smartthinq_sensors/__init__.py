@@ -36,6 +36,17 @@ from homeassistant.util import Throttle
 
 from homeassistant.const import CONF_REGION, CONF_TOKEN
 
+from homeassistant.components.climate import const as c_const
+from homeassistant import const
+from homeassistant.components import climate
+
+try:
+    from homeassistant.components.climate import ClimateEntity
+except ImportError:
+    from homeassistant.components.climate import ClimateDevice \
+         as ClimateEntity
+
+
 from .const import (
     ATTR_CONFIG,
     CLIENT,
@@ -136,11 +147,10 @@ class LGEAuthentication:
         return client
 
 
-async def async_setup_entry(hass: HomeAssistantType, config_entry):
-    """
-    This class is called by the HomeAssistant framework when a configuration entry is provided.
-    """
-
+def setup_platform(hass, config, add_devices, discovery_info=None):
+    
+    config_entry = hass.data[DOMAIN]
+    
     refresh_token = config_entry.data.get(CONF_TOKEN)
     region = config_entry.data.get(CONF_REGION)
     language = config_entry.data.get(CONF_LANGUAGE)
@@ -148,12 +158,6 @@ async def async_setup_entry(hass: HomeAssistantType, config_entry):
     oauth_url = config_entry.data.get(CONF_OAUTH_URL)
     oauth_user_num = config_entry.data.get(CONF_OAUTH_USER_NUM)
 
-    _LOGGER.info(STARTUP)
-    _LOGGER.info(
-        "Initializing SmartThinQ platform with region: %s - language: %s",
-        region,
-        language,
-    )
 
     hass.data.setdefault(DOMAIN, {})[LGE_DEVICES] = {}
 
@@ -173,23 +177,6 @@ async def async_setup_entry(hass: HomeAssistantType, config_entry):
 
     _LOGGER.info("SmartThinQ client connected")
 
-    try:
-        lge_devices = await lge_devices_setup(hass, client)
-    except Exception:
-        _LOGGER.warning(
-            "Connection not available. SmartThinQ platform not ready",
-            exc_info=True,
-        )
-        raise ConfigEntryNotReady()
-
-    if not use_apiv2:
-        _LOGGER.warning(
-            "Integration configuration is using ThinQ APIv1 that is obsolete"
-            " and not able to manage all ThinQ devices."
-            " Please remove and re-add integration from HA user interface to"
-            " enable the use of ThinQ APIv2"
-        )
-
     hass.data.setdefault(DOMAIN, {}).update(
         {
             CLIENT: client,
@@ -202,7 +189,7 @@ async def async_setup_entry(hass: HomeAssistantType, config_entry):
             hass.config_entries.async_forward_entry_setup(config_entry, platform)
         )
 
-    return True
+    add_devices(_ac_devices(hass, client, fahrenheit), True)
 
 
 async def async_unload_entry(hass, config_entry):
@@ -217,6 +204,18 @@ async def async_unload_entry(hass, config_entry):
     hass.data.pop(DOMAIN)
 
     return True
+
+
+def _ac_devices(hass, client, fahrenheit):
+    """Generate all the AC (climate) devices associated with the user's
+    LG account.
+    Log errors for devices that can't be used for whatever reason.
+    """
+    persistent_notification = hass.components.persistent_notification
+
+    for device in client.devices:
+        d = LGDevice(client, device, fahrenheit)
+        yield d
 
 
 async def async_setup(hass, config):
@@ -241,282 +240,73 @@ async def async_setup(hass, config):
 
     return True
 
-
-class LGEDevice:
-    def __init__(self, device, name):
-        """initialize a LGE Device."""
-
+class LGDevice(ClimateEntity):
+    def __init__(self, client, device, fahrenheit=True):
+        self._client = client
         self._device = device
-        self._name = name
-        self._device_id = device.device_info.id
-        self._type = device.device_info.type
-        self._mac = device.device_info.macaddress
-        self._firmware = device.device_info.firmware
+        self._fahrenheit = fahrenheit
+        self._attrs = {}
+        self._has_power = "maybe"
 
-        self._model = f"{device.device_info.model_name}"
-        self._id = f"{self._type.name}:{self._device_id}"
+        import wideq
+        self._ac = ACDevice(client, device)
 
+        # The response from the monitoring query.
         self._state = None
-        self._retry_count = 0
-        self._disconnected = True
-        self._not_logged = False
-        self._update_fail_count = 0
-        self._not_logged_count = 0
-        self._refresh_gateway = False
+
+        # Store a transient temperature when we've just set it. We also
+        # store the timestamp for when we set this value.
+        self._transient_temp = None
+        self._transient_time = None
+        
+        self._swing_mode = SWING_MODE_DEFAULT
 
     @property
-    def available(self) -> bool:
-        return self._not_logged_count <= MAX_UPDATE_FAIL_ALLOWED
+    def device_state_attributes(self):
+        return self._attrs
 
     @property
-    def assumed_state(self) -> bool:
-        """Return True if unable to access real state of the entity."""
-        return self.available and self._disconnected
+    def temperature_unit(self):
+        if self._fahrenheit:
+            return const.TEMP_FAHRENHEIT
+        else:
+            return const.TEMP_CELSIUS
 
     @property
-    def name(self) -> str:
-        return self._name
+    def name(self):
+        return self._device.name
 
     @property
-    def type(self) -> DeviceType:
-        return self._type
+    def available(self):
+        return True
 
     @property
-    def unique_id(self) -> str:
-        return self._id
-
-    @property
-    def state(self):
-        return self._state
-
-    @property
-    def state_attributes(self):
-        """Return the optional state attributes."""
-        data = {
-            ATTR_MODEL: self._model,
-            ATTR_MAC_ADDRESS: self._mac,
-        }
-        return data
-
-    @property
-    def device_info(self):
-        data = {
-            "identifiers": {(DOMAIN, self._device_id)},
-            "name": self._name,
-            "manufacturer": "LG",
-            "model": f"{self._model} ({self._type.name})",
-        }
-        if self._firmware:
-            data["sw_version"] = self._firmware
-
-        return data
-
-    def init_device(self):
-        if self._device.init_device_info():
-            self._state = self._device.status
-            self._model = f"{self._model}-{self._device.model_info.model_type}"
-            return True
-        return False
-
-    def _critical_status(self):
+    def supported_features(self):
         return (
-            self._not_logged_count == MAX_UPDATE_FAIL_ALLOWED or (
-                    self._not_logged_count > 0 and
-                    self._not_logged_count % 60 == 0
-            )
+            c_const.SUPPORT_TARGET_TEMPERATURE |
+            c_const.SUPPORT_FAN_MODE |
+            c_const.SUPPORT_SWING_MODE
         )
 
-    def _log_error(self, msg, *args, **kwargs):
-        if self._critical_status():
-            _LOGGER.error(msg, *args, **kwargs)
-        else:
-            _LOGGER.debug(msg, *args, **kwargs)
+    @property
+    def hvac_modes(self):
+        return [c_const.HVAC_MODE_OFF]
 
-    def _restart_monitor(self):
-        """Restart the device monitor"""
+    @property
+    def fan_modes(self):
+        return ["aaaaaa","bbbbbb"]
+    @property
+    def hvac_mode(self):
+        return HVAC_MODE_OFF
+    @property
+    def fan_mode(self):
+        return "High"
+    def set_hvac_mode(self, hvac_mode):
+        _LOGGER.warning("SET HVAC")
 
-        refresh_gateway = False
-        if self._refresh_gateway:
-            refresh_gateway = True
-            self._refresh_gateway = False
-
-        try:
-            if self._not_logged:
-                self._device.client.refresh(refresh_gateway)
-                self._not_logged = False
-                self._disconnected = True
-
-            self._device.monitor_start()
-            self._disconnected = False
-
-        except NotConnectedError:
-            self._log_error("Device not connected. Status not available")
-            self._disconnected = True
-
-        except NotLoggedInError:
-            self._log_error("ThinQ Session expired. Refreshing")
-            self._not_logged = True
-
-        except InvalidCredentialError:
-            self._log_error("Connection to ThinQ failed. Check your login credential")
-            self._not_logged = True
-
-        except (reqExc.ConnectionError, reqExc.ConnectTimeout, reqExc.ReadTimeout):
-            self._log_error("Connection to ThinQ failed. Network connection error")
-            self._disconnected = True
-            self._not_logged = True
-
-        except Exception:
-            self._log_error("ThinQ error while updating device status", exc_info=True)
-            self._not_logged = True
-
-    @Throttle(MIN_TIME_BETWEEN_UPDATES)
-    def device_update(self):
-        """Update device state"""
-        _LOGGER.debug("Updating smartthinq device %s", self.name)
-
-        if self._disconnected or self._not_logged:
-            if self._update_fail_count < MAX_UPDATE_FAIL_ALLOWED:
-                self._update_fail_count += 1
-            if self._not_logged:
-                self._not_logged_count += 1
-            else:
-                self._not_logged_count = 0
-
-        for iteration in range(MAX_RETRIES):
-            _LOGGER.debug("Polling...")
-
-            if self._disconnected or self._not_logged:
-                if iteration >= MAX_CONN_RETRIES and iteration > 0:
-                    _LOGGER.debug("Connection not available. Status update failed")
-                    return
-
-                self._retry_count = 0
-                self._restart_monitor()
-
-            if self._disconnected or self._not_logged:
-                if self._update_fail_count >= MAX_UPDATE_FAIL_ALLOWED:
-
-                    if self._critical_status():
-                        _LOGGER.error(
-                            "Connection to ThinQ for device %s is not available. Connection will be retried",
-                            self.name,
-                        )
-                        if self._not_logged_count >= 60:
-                            self._refresh_gateway = True
-                        self._not_logged_count += 1
-
-                    if self._state.is_on:
-                        self._state = self._device.reset_status()
-                        return
-
-            if self._disconnected:
-                return
-
-            if not (self._disconnected or self._not_logged):
-
-                try:
-                    state = self._device.poll()
-
-                except NotLoggedInError:
-                    self._not_logged = True
-
-                except NotConnectedError:
-                    self._disconnected = True
-                    return
-                    # time.sleep(1)
-
-                except InvalidCredentialError:
-                    self._log_error("Connection to ThinQ failed. Check your login credential")
-                    self._not_logged = True
-                    return
-
-                except (reqExc.ConnectionError, reqExc.ConnectTimeout, reqExc.ReadTimeout):
-                    self._log_error("Connection to ThinQ failed. Network connection error")
-                    self._not_logged = True
-                    return
-
-                except Exception:
-                    self._log_error("ThinQ error while updating device status", exc_info=True)
-                    self._not_logged = True
-                    return
-
-                else:
-                    if state:
-                        _LOGGER.debug("ThinQ status updated")
-                        # l = dir(state)
-                        # _LOGGER.debug('Status attributes: %s', l)
-
-                        self._update_fail_count = 0
-                        self._not_logged_count = 0
-                        self._retry_count = 0
-                        self._state = state
-
-                        return
-                    else:
-                        _LOGGER.debug("No status available yet")
-
-            # time.sleep(2 ** iteration)
-            time.sleep(1)
-
-        # We tried several times but got no result. This might happen
-        # when the monitoring request gets into a bad state, so we
-        # restart the task.
-        if self._retry_count >= MAX_LOOP_WARN:
-            self._retry_count = 0
-            _LOGGER.warning("Status update failed")
-        else:
-            self._retry_count += 1
-            _LOGGER.debug("Status update failed")
+    def set_fan_mode(self, fan_mode):
+        _LOGGER.warning("SET FAN")
 
 
-async def lge_devices_setup(hass, client) -> dict:
-    """Query connected devices from LG ThinQ."""
-    _LOGGER.info("Starting LGE ThinQ devices...")
-
-    wrapped_devices = {}
-    device_count = 0
-
-    for device in client.devices:
-        device_id = device.id
-        device_name = device.name
-        device_mac = device.macaddress
-        model_name = device.model_name
-        dev = None
-        result = False
-        device_count += 1
-
-        if device.type == DeviceType.WASHER:
-            dev = LGEDevice(WasherDevice(client, device), device_name)
-        elif device.type == DeviceType.DRYER:
-            dev = LGEDevice(DryerDevice(client, device), device_name)
-        elif device.type == DeviceType.DISHWASHER:
-            dev = LGEDevice(DishWasherDevice(client, device), device_name)
-        elif device.type == DeviceType.REFRIGERATOR:
-            dev = LGEDevice(RefrigeratorDevice(client, device), device_name)
-        elif device.type == DeviceType.AC:
-            dev = LGEDevice(AcDevice(client, device), device_name)
-
-        if dev:
-            result = await hass.async_add_executor_job(dev.init_device)
-
-        if not result:
-            _LOGGER.info(
-                "Found unsupported LGE Device. Name: %s - Type: %s",
-                device_name,
-                device.type.name,
-            )
-            continue
-
-        wrapped_devices.setdefault(device.type, []).append(dev)
-        _LOGGER.info(
-            "LGE Device added. Name: %s - Type: %s - Model: %s - Mac: %s - ID: %s",
-            device_name,
-            device.type.name,
-            model_name,
-            device_mac,
-            device_id,
-        )
-
-    _LOGGER.info("Founds %s LGE device(s)", str(device_count))
-    return wrapped_devices
+    def update(self):
+        """Poll for updated device status."""
