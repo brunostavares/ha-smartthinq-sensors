@@ -16,6 +16,14 @@ from homeassistant.components.binary_sensor import DEVICE_CLASS_PROBLEM, DEVICE_
 from homeassistant.helpers.dispatcher import async_dispatcher_connect, dispatcher_send
 from homeassistant.helpers.entity import Entity
 
+from homeassistant.components import climate
+from homeassistant.components.climate import const as c_const
+try:
+    from homeassistant.components.climate import ClimateEntity
+except ImportError:
+    from homeassistant.components.climate import ClimateDevice \
+         as ClimateEntity
+
 
 from homeassistant.const import (
     DEVICE_CLASS_TEMPERATURE,
@@ -347,7 +355,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     await async_setup_sensors(hass, config_entry, async_add_entities, False)
 
 
-class LGESensor(Entity):
+class LGESensor(ClimateEntity):
     def __init__(self, device: LGEDevice, measurement, definition, is_binary):
         """Initialize the sensor."""
         self._api = device
@@ -385,55 +393,9 @@ class LGESensor(Entity):
         return f"{self._name_slug} {self._def[ATTR_MEASUREMENT_NAME]}"
 
     @property
-    def unique_id(self) -> str:
-        """Return a unique ID."""
-        if self._is_default:
-            return self._api.unique_id
-        return f"{self._api.unique_id}-{self._measurement}"
-
-    @property
-    def unit_of_measurement(self):
-        """Return the unit of measurement."""
-        return self._def[ATTR_UNIT_FN](self)
-
-    @property
-    def device_class(self):
-        """Return device class."""
-        return self._def[ATTR_DEVICE_CLASS]
-
-    @property
-    def icon(self):
-        """Return the icon to use in the frontend, if any."""
-        return self._def[ATTR_ICON]
-
-    @property
-    def is_on(self):
-        """Return the state of the binary sensor."""
-        if self._is_binary:
-            ret_val = self._def[ATTR_VALUE_FN](self)
-            if isinstance(ret_val, bool):
-                return ret_val
-            return True if ret_val == STATE_ON else False
-        return False
-
-    @property
-    def state(self):
-        """Return the state of the sensor."""
-        if not self.available:
-            return STATE_UNAVAILABLE
-        if self._is_binary:
-            return STATE_ON if self.is_on else STATE_OFF
-        return self._def[ATTR_VALUE_FN](self)
-
-    @property
     def available(self) -> bool:
         """Return True if entity is available."""
         return self._api.available
-
-    @property
-    def assumed_state(self) -> bool:
-        """Return True if unable to access real state of the entity."""
-        return self._api.assumed_state
 
     @property
     def state_attributes(self):
@@ -467,6 +429,19 @@ class LGESensor(Entity):
             self._unsub_dispatcher = async_dispatcher_connect(
                 self.hass, self._dispatcher_queue, async_state_update
             )
+
+        def set_swing_mode(self, swing_mode):
+            self._swing_mode = swing_mode
+            LOGGER.info('Setting swing mode to %s...', self._swing_mode)
+    
+    @property
+    def swing_modes(self):
+        return ["AAAAAAAAAAAAAAAA"]
+            
+
+    @property
+    def swing_mode(self):
+        return "SWING_MODE_DEFAULT"
 
     async def async_will_remove_from_hass(self):
         """Unregister update dispatcher."""
