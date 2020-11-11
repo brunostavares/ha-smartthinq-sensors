@@ -473,7 +473,6 @@ class ModelInfo(object):
         if key == "Ac":
             info = data
             protocol = self._data["Value"]
-            protocol["airState.energy.onCurrent"]= " "
         else:
             info = data.get(key)
             protocol = self._data["Monitoring"]["protocol"]

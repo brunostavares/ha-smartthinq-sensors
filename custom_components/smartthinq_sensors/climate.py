@@ -29,6 +29,9 @@ from homeassistant.const import (
 )
 
 from .const import DOMAIN, LGE_DEVICES
+
+from homeassistant.components.climate import const as c_const
+
 from . import LGEDevice
 
 # sensor definition
@@ -246,6 +249,77 @@ class LGESensor(ClimateEntity):
             if self._api.state.is_on:
                 return STATE_ON
         return STATE_OFF
+
+# For Climate platform
+
+    @property
+    def temperature_unit(self):
+        return TEMP_CELSIUS
+
+    @property
+    def current_temperature(self):
+        return self._api.ac_current_temp
+    
+    @property
+    def target_temperature(self):
+        return self._api.ac_target_temperature
+    
+    @property
+    def target_temperature_high(self):
+        return 30
+
+    @property
+    def target_temperature_low(self):
+        return 18
+
+    @property
+    def target_temperature_step(self):
+        return 1
+
+    @property
+    def hvac_mode(self):
+        return self._api.ac_operation_mode
+
+    @property
+    def hvac_modes(self):
+        return ["aa","bb","cc"]
+
+    @property
+    def fan_mode(self):
+        return self._api.ac_fan_mode
+
+    @property
+    def fan_modes(self):
+        return ["aa","bb","cc"]
+
+    @property
+    def swing_mode(self):
+        return self._api.ac_swing_mode
+    
+    @property
+    def swing_modes(self):
+        return ["aa","bb","cc"]
+
+    @property
+    def supported_features(self):
+        return (
+            c_const.SUPPORT_TARGET_TEMPERATURE |
+            c_const.SUPPORT_TARGET_TEMPERATURE_RANGE |
+            c_const.SUPPORT_FAN_MODE |
+            c_const.SUPPORT_SWING_MODE
+        )
+
+    async def async_set_hvac_mode(self, hvac_mode):
+        """Set new target hvac mode."""
+
+    async def async_set_fan_mode(self, fan_mode):
+        """Set new target fan mode."""
+
+    async def async_set_swing_mode(self, swing_mode):
+        """Set new target swing operation."""
+
+    async def async_set_temperature(self, **kwargs):
+        """Set new target temperature."""
 
 class LGEAcSensor(LGESensor):
     """A sensor to monitor LGE Dryer devices"""

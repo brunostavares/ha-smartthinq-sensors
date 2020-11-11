@@ -7,10 +7,64 @@ from .device import (
     DeviceStatus,
     STATE_OPTIONITEM_NONE,
 )
+from homeassistant.components.climate import const
+
 _LOGGER = logging.getLogger(__name__)
 
-STATE_AC_POWER_OFF = "@AC_MAIN_OPERATION_OFF_W"
 
+STATE_AC_MODE_COOL = "@AC_MAIN_OPERATION_MODE_COOL_W"
+STATE_AC_MODE_FAN = "@AC_MAIN_OPERATION_MODE_FAN_W"
+STATE_AC_MODE_AI = "@AC_MAIN_OPERATION_MODE_AI_W"
+STATE_AC_MODE_HEAT = "@AC_MAIN_OPERATION_MODE_HEAT_W"
+STATE_AC_MODE_DRY = "@AC_MAIN_OPERATION_MODE_DRY_W"
+
+STATE_AC_MODES = {
+    STATE_AC_MODE_COOL: HVAC_MODE_COOL,
+    STATE_AC_MODE_FAN: HVAC_MODE_FAN_ONLY,
+    STATE_AC_MODE_AI: HVAC_MODE_AUTO,
+    STATE_AC_MODE_HEAT: HVAC_MODE_HEAT,
+    STATE_AC_MODE_DRY: HVAC_MODE_DRY
+}
+
+STATE_AC_WIND_LOW = "@AC_MAIN_WIND_STRENGTH_LOW_W"
+STATE_AC_WIND_MIDLOW = "@AC_MAIN_WIND_STRENGTH_LOW_MID_W"
+STATE_AC_WIND_MID = "@AC_MAIN_WIND_STRENGTH_MID_W"
+STATE_AC_WIND_MIDHIGH = "@AC_MAIN_WIND_STRENGTH_MID_HIGH_W"
+STATE_AC_WIND_HIGH = "@AC_MAIN_WIND_STRENGTH_HIGH_W"
+STATE_AC_WIND_MAX = "@AC_MAIN_WIND_STRENGTH_POWER_W"
+STATE_AC_WIND_AUTO = "@AC_MAIN_WIND_STRENGTH_NATURE_W"
+
+STATE_AC_WINDS = {
+    STATE_AC_WIND_LOW: FAN_LOW,
+    STATE_AC_WIND_MIDLOW: "Médio baixo",
+    STATE_AC_WIND_MID: FAN_MEDIUM,
+    STATE_AC_WIND_MIDHIGH: "Médio alto",
+    STATE_AC_WIND_HIGH: FAN_HIGH,
+    STATE_AC_WIND_MAX: "Máximo",
+    STATE_AC_WIND_AUTO: FAN_AUTO
+}
+
+STATE_AC_SWING_OFF = "@OFF"
+STATE_AC_SWING_1 = "@1"
+STATE_AC_SWING_2 = "@2"
+STATE_AC_SWING_3 = "@3"
+STATE_AC_SWING_4 = "@4"
+STATE_AC_SWING_5 = "@5"
+STATE_AC_SWING_6 = "@6"
+STATE_AC_SWING_AUTO = "@100"
+
+STATE_AC_SWINGS = {
+    STATE_AC_SWING_OFF: SWING_OFF,
+    STATE_AC_SWING_1: "Posição 1",
+    STATE_AC_SWING_2: "Posição 2",
+    STATE_AC_SWING_3: "Posição 3",
+    STATE_AC_SWING_4: "Posição 4",
+    STATE_AC_SWING_5: "Posição 5",
+    STATE_AC_SWING_6: "Posição 6",
+    STATE_AC_SWING_AUTO: "Auto"
+}
+
+STATE_AC_POWER_OFF = "@AC_MAIN_OPERATION_OFF_W"
 STATE_AC_ERROR_OFF = "OFF"
 
 STATE_AC_ERROR_NO_ERROR = [
@@ -73,7 +127,7 @@ class AcStatus(DeviceStatus):
         temp = self._data.get(key)
         if not temp:
             return STATE_OPTIONITEM_NONE
-        temp = str(temp)
+        temp = int(temp)
         return temp
 
     def _get_energy_kw(self, key):
@@ -83,6 +137,23 @@ class AcStatus(DeviceStatus):
         power = str(int(power)/1000)
         return power
 
+    def _get_ac_swing_mode(self, key):
+        mode = self.data.get(key)
+        if not mode:
+            return STATE_OPTIONITEM_NONE
+        return STATE_AC_SWINGS.get(mode)
+
+    def _get_fan(self, key):
+        fan = self.data.get(key)
+        if not fan:
+            return STATE_OPTIONITEM_NONE
+        return STATE_AC_WINDS.get(fan)
+
+    def _get_operation_mode(self, key):
+        operation = self.data.get(key)
+        if not operation:
+            return STATE_OPTIONITEM_NONE
+        return STATE_AC_MODES.get(operation)
 
     @property
     def is_on(self):
@@ -114,3 +185,19 @@ class AcStatus(DeviceStatus):
     @property
     def ac_power_consumpion(self):
         return self._get_energy_kw("airState.energy.onCurrent")
+
+    @property
+    def ac_target_temperature(self):
+        return self._get_temp_val_v2("airState.tempState.target")
+
+    @property
+    def ac_swing_mode(self):
+        return self._get_ac_swing_mode("airState.wDir.vStep")
+
+    @property
+    def ac_fan_mode(self):
+        return self._get_fan("airState.windStrength")
+
+    @property
+    def ac_operation_mode(self):
+        return self._get_operation_mode("airState.opMode")
