@@ -57,6 +57,8 @@ ATTR_ERROR_MSG = "error_message"
 # ac sensor attributes
 ATTR_AC_CURRENT_TEMP = "tempState_current"
 ATTR_AC_POWER_CONSUMPTION = "consumo_de_energia"
+ATTR_AC_MAX_TEMP = 30
+ATTR_AC_MIN_TEMP = 18
 
 STATE_LOOKUP = {
     STATE_OPTIONITEM_OFF: STATE_OFF,
@@ -283,6 +285,13 @@ class LGESensor(ClimateEntity):
     # @property
     # def target_temperature_low(self):
     #     return 18
+    @property
+    def min_temp(self):
+        return ATTR_AC_MIN_TEMP
+    
+    @property
+    def max_temp(self):
+        return ATTR_AC_MAX_TEMP
 
     @property
     def target_temperature_step(self):
@@ -290,7 +299,7 @@ class LGESensor(ClimateEntity):
 
     @property
     def hvac_modes(self):
-        return [c_const.HVAC_MODE_COOL, c_const.HVAC_MODE_FAN_ONLY, c_const.HVAC_MODE_AUTO, c_const.HVAC_MODE_HEAT, c_const.HVAC_MODE_DRY]
+        return [c_const.HVAC_MODE_OFF, c_const.HVAC_MODE_COOL, c_const.HVAC_MODE_FAN_ONLY, c_const.HVAC_MODE_AUTO, c_const.HVAC_MODE_HEAT, c_const.HVAC_MODE_DRY]
 
     @property
     def fan_modes(self):

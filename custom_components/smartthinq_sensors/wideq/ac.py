@@ -11,7 +11,6 @@ from homeassistant.components.climate import const as cconst
 
 _LOGGER = logging.getLogger(__name__)
 
-
 STATE_AC_MODE_COOL = "@AC_MAIN_OPERATION_MODE_COOL_W"
 STATE_AC_MODE_FAN = "@AC_MAIN_OPERATION_MODE_FAN_W"
 STATE_AC_MODE_AI = "@AC_MAIN_OPERATION_MODE_AI_W"
@@ -19,6 +18,7 @@ STATE_AC_MODE_HEAT = "@AC_MAIN_OPERATION_MODE_HEAT_W"
 STATE_AC_MODE_DRY = "@AC_MAIN_OPERATION_MODE_DRY_W"
 
 STATE_AC_MODES = {
+    STATE_AC_POWER_OFF: cconst.HVAC_MODE_OFF,
     STATE_AC_MODE_COOL: cconst.HVAC_MODE_COOL,
     STATE_AC_MODE_FAN: cconst.HVAC_MODE_FAN_ONLY,
     STATE_AC_MODE_AI: cconst.HVAC_MODE_AUTO,
@@ -150,6 +150,11 @@ class AcStatus(DeviceStatus):
         return STATE_AC_WINDS.get(fan)
 
     def _get_operation_mode(self, key):
+        power = self.lookup_enum("airState.operation")
+        if not power:
+            return STATE_OPTIONITEM_NONE
+        else if power == STATE_AC_POWER_OFF:
+            return STATE_AC_MODES.get(power)
         op = self.lookup_enum(key)
         if not op:
             return STATE_OPTIONITEM_NONE
