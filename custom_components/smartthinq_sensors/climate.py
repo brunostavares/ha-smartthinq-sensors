@@ -81,7 +81,7 @@ AC_SENSORS = {
         ATTR_UNIT_FN: lambda x: None,
         ATTR_DEVICE_CLASS: None,
         ATTR_VALUE_FN: lambda x: x._power_state,
-        ATTR_ENABLED_FN: lambda x: True,
+        ATTR_ENABLED_FN: lambda x: x._,
     },
 }
 
@@ -176,7 +176,7 @@ class LGESensor(ClimateEntity):
 
     @property
     def hvac_mode(self):
-        return self._api.ac_operation_mode
+        return self._api.state.ac_operation_mode
 
     @property
     def is_on(self):
