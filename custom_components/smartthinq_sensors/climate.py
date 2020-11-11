@@ -192,7 +192,7 @@ class LGESensor(ClimateEntity):
 
     @property
     def current_temperature(self):
-        self._api.post2()
+        self._api._post()
         return self._api.state.ac_current_temp
 
     @property

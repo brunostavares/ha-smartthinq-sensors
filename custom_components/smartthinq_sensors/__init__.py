@@ -304,6 +304,9 @@ class LGEDevice:
             return True
         return False
 
+    def _post(self):
+        self._device.post_request()
+
     def _critical_status(self):
         return (
             self._not_logged_count == MAX_UPDATE_FAIL_ALLOWED or (

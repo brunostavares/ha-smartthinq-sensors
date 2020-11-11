@@ -93,9 +93,6 @@ class AcDevice(Device):
         self._status = AcStatus(self, res)
         return self._status
 
-    def post2(self):
-        res = self.post_request()
-
 class AcStatus(DeviceStatus):
     """Higher-level information about a dryer's current status.
 
