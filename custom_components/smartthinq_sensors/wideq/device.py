@@ -794,8 +794,9 @@ class Device(object):
             return
         self._client.session.delete_permission(self._device_info.id)
     
-    def loucura(self):
+    def post_request(self):
         _LOGGER.warning("QUE LOUCO!")
+        self._client._post_cmd(self._device_info.id)
         
     def device_poll(self, snapshot_key=""):
         """Poll the device's current state.

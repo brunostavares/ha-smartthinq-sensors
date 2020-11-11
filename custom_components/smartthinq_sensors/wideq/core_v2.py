@@ -387,6 +387,10 @@ class Session(object):
         self.auth = auth
         self.session_id = session_id
         self._common_lang_pack_url = None
+    
+    @property
+    def teste(self):
+        return "ok"
 
     @property
     def common_lang_pack_url(self):
@@ -593,6 +597,11 @@ class ClientV2(object):
             # for debug
             # self._inject_thinq2_device()
             # for debug
+
+    def _post_cmd(self, ac_id):
+        resp = self._session.teste
+        _LOGGER.warning(ac_id)
+        _LOGGER.warning(resp)
 
     @property
     def gateway(self) -> Gateway:
