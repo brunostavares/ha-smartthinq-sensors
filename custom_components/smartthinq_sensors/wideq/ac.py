@@ -155,28 +155,28 @@ class AcStatus(DeviceStatus):
             return STATE_OPTIONITEM_NONE
         return STATE_AC_MODES.get(operation)
 
-    @property
-    def is_on(self):
-        run_state = self._get_run_state()
-        return run_state != STATE_AC_POWER_OFF
+    # @property
+    # def is_on(self):
+    #     run_state = self._get_run_state()
+    #     return run_state != STATE_AC_POWER_OFF
 
-    @property
-    def run_state(self):
-        run_state = self._get_run_state()
-        if run_state == STATE_AC_POWER_OFF:
-            return STATE_OPTIONITEM_NONE
-        return self._device.get_enum_text(run_state)
+    # @property
+    # def run_state(self):
+    #     run_state = self._get_run_state()
+    #     if run_state == STATE_AC_POWER_OFF:
+    #         return STATE_OPTIONITEM_NONE
+    #     return self._device.get_enum_text(run_state)
 
-    @property
-    def error_state(self):
-        if not self.is_error:
-            return STATE_OPTIONITEM_NONE
-        error = self._get_error()
-        return self._device.get_enum_text(error)
+    # @property
+    # def error_state(self):
+    #     if not self.is_error:
+    #         return STATE_OPTIONITEM_NONE
+    #     error = self._get_error()
+    #     return self._device.get_enum_text(error)
 
-    @property
-    def is_error(self):
-        return False
+    # @property
+    # def is_error(self):
+    #     return False
 
     @property
     def ac_current_temp(self):
