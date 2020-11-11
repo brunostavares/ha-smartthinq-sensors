@@ -85,7 +85,6 @@ AC_SENSORS = {
     },
 }
 
-
 def setup_platform(hass, config, async_add_entities, discovery_info=None):
     pass
 
@@ -179,6 +178,10 @@ class LGESensor(ClimateEntity):
         return self._api.state.ac_operation_mode
 
     @property
+    def current_temperature(self):
+        return self._api.state.ac_current_temp
+
+    @property
     def is_on(self):
         """Return the state of the binary sensor."""
         if self._is_binary:
@@ -259,10 +262,6 @@ class LGESensor(ClimateEntity):
     @property
     def temperature_unit(self):
         return TEMP_CELSIUS
-
-    @property
-    def current_temperature(self):
-        return self._api.ac_current_temp
     
     @property
     def target_temperature(self):
@@ -279,8 +278,6 @@ class LGESensor(ClimateEntity):
     @property
     def target_temperature_step(self):
         return 1
-
-
 
     @property
     def hvac_modes(self):
