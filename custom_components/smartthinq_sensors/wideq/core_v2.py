@@ -169,6 +169,7 @@ def lgedm2_post(
     s = requests.Session()
     if use_tlsv1:
         s.mount(url, core.Tlsv1HttpAdapter())
+
     res = s.post(
         url,
         json={core.DATA_ROOT: data},
@@ -389,10 +390,6 @@ class Session(object):
         self._common_lang_pack_url = None
     
     @property
-    def teste(self):
-        return "ok"
-
-    @property
     def common_lang_pack_url(self):
         return self._common_lang_pack_url
 
@@ -404,6 +401,26 @@ class Session(object):
         """
 
         url = urljoin(self.auth.gateway.api_root + "/", path)
+        return lgedm2_post(
+            url,
+            data,
+            self.auth.access_token,
+            self.auth.user_number,
+            country=self.auth.gateway.country,
+            language=self.auth.gateway.language,
+        )
+
+    def post2(self, deviceid, topic, cmnd):
+
+        url = self.auth.gateway.api_root + "/service/devices/" + deviceid + "/control-sync"
+        data_json = {
+        "command": "Set",
+        "ctrlKey": "basicCtrl",
+        "dataKey": topic,
+        "dataValue": cmnd
+        }
+        data = json.dumps(data_json)
+        
         return lgedm2_post(
             url,
             data,
@@ -597,11 +614,6 @@ class ClientV2(object):
             # for debug
             # self._inject_thinq2_device()
             # for debug
-
-    def _post_cmd(self, ac_id):
-        resp = self._session.teste
-        _LOGGER.warning(ac_id)
-        _LOGGER.warning(resp)
 
     @property
     def gateway(self) -> Gateway:

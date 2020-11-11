@@ -794,9 +794,9 @@ class Device(object):
             return
         self._client.session.delete_permission(self._device_info.id)
     
-    def post_request(self):
+    def post_request(self, topic, cmnd):
         _LOGGER.warning("QUE LOUCO!")
-        self._client._post_cmd(self._device_info.id)
+        return self._client.session.post2(self._device_info.id, topic, cmnd)
         
     def device_poll(self, snapshot_key=""):
         """Poll the device's current state.

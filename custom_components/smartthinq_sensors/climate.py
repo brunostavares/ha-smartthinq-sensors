@@ -192,7 +192,6 @@ class LGESensor(ClimateEntity):
 
     @property
     def current_temperature(self):
-        self._api._post()
         return self._api.state.ac_current_temp
 
     @property
@@ -314,7 +313,7 @@ class LGESensor(ClimateEntity):
     def swing_modes(self):
         return ["aa","bb","cc"]
 
-    async def set_hvac_mode(self, hvac_mode):
+    def set_hvac_mode(self, hvac_mode):
         """Set new target hvac mode."""
 
     async def set_fan_mode(self, fan_mode):
@@ -325,6 +324,7 @@ class LGESensor(ClimateEntity):
 
     async def set_temperature(self, **kwargs):
         """Set new target temperature."""
+        _LOGGER.warning(self._api._device.post_request("airState.tempState.target", kwargs))
 
 class LGEAcSensor(LGESensor):
     """A sensor to monitor LGE Dryer devices"""
