@@ -157,22 +157,30 @@ class LGESensor(ClimateEntity):
         if self._is_default:
             return self._api.unique_id
         return f"{self._api.unique_id}-{self._measurement}"
+    # @property
+    # def unit_of_measurement(self):
+    #     """Return the unit of measurement."""
+    #     return self._def[ATTR_UNIT_FN](self)
 
-    @property
-    def unit_of_measurement(self):
-        """Return the unit of measurement."""
-        return self._def[ATTR_UNIT_FN](self)
-
-    @property
-    def device_class(self):
-        """Return device class."""
-        return self._def[ATTR_DEVICE_CLASS]
+    # @property
+    # def device_class(self):
+    #     """Return device class."""
+    #     return self._def[ATTR_DEVICE_CLASS]
 
     @property
     def icon(self):
         """Return the icon to use in the frontend, if any."""
         return self._def[ATTR_ICON]
     
+    @property
+    def supported_features(self):
+        return (
+            c_const.SUPPORT_TARGET_TEMPERATURE |
+            c_const.SUPPORT_TARGET_TEMPERATURE_RANGE |
+            c_const.SUPPORT_FAN_MODE |
+            c_const.SUPPORT_SWING_MODE
+        )
+
     @property
     def fan_mode(self):
         return self._api.state.ac_fan_mode
@@ -203,7 +211,6 @@ class LGESensor(ClimateEntity):
     #     if self._is_binary:
     #         return STATE_ON if self.is_on else STATE_OFF
     #     return self._def[ATTR_VALUE_FN](self)
-
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
@@ -214,10 +221,10 @@ class LGESensor(ClimateEntity):
         """Return True if unable to access real state of the entity."""
         return self._api.assumed_state
 
-    @property
-    def state_attributes(self):
-        """Return the optional state attributes."""
-        return self._api.state_attributes
+    # @property
+    # def state_attributes(self):
+    #     """Return the optional state attributes."""
+    #     return self._api.state_attributes
 
     @property
     def device_info(self):
@@ -262,7 +269,6 @@ class LGESensor(ClimateEntity):
         return STATE_OFF
 
 # For Climate platform
-
     @property
     def temperature_unit(self):
         return TEMP_CELSIUS
@@ -298,15 +304,6 @@ class LGESensor(ClimateEntity):
     @property
     def swing_modes(self):
         return ["aa","bb","cc"]
-
-    @property
-    def supported_features(self):
-        return (
-            c_const.SUPPORT_TARGET_TEMPERATURE |
-            c_const.SUPPORT_TARGET_TEMPERATURE_RANGE |
-            c_const.SUPPORT_FAN_MODE |
-            c_const.SUPPORT_SWING_MODE
-        )
 
     async def set_hvac_mode(self, hvac_mode):
         """Set new target hvac mode."""
