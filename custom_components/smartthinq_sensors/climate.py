@@ -176,7 +176,6 @@ class LGESensor(ClimateEntity):
     def supported_features(self):
         return (
             c_const.SUPPORT_TARGET_TEMPERATURE |
-            c_const.SUPPORT_TARGET_TEMPERATURE_RANGE |
             c_const.SUPPORT_FAN_MODE |
             c_const.SUPPORT_SWING_MODE
         )
@@ -275,15 +274,15 @@ class LGESensor(ClimateEntity):
     
     @property
     def target_temperature(self):
-        return self._api.ac_target_temperature
+        return self._api.state.ac_target_temperature
     
-    @property
-    def target_temperature_high(self):
-        return 30
+    # @property
+    # def target_temperature_high(self):
+    #     return 30
 
-    @property
-    def target_temperature_low(self):
-        return 18
+    # @property
+    # def target_temperature_low(self):
+    #     return 18
 
     @property
     def target_temperature_step(self):
@@ -299,7 +298,7 @@ class LGESensor(ClimateEntity):
 
     @property
     def swing_mode(self):
-        return self._api.ac_swing_mode
+        return self._api.state.ac_swing_mode
     
     @property
     def swing_modes(self):
