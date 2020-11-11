@@ -176,7 +176,7 @@ class LGESensor(ClimateEntity):
 
     @property
     def hvac_mode(self):
-        return c_const.HVAC_MODE_COOL
+        return self._api.ac_operation_mode
 
     @property
     def is_on(self):
