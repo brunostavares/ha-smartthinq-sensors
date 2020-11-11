@@ -81,7 +81,7 @@ AC_SENSORS = {
         ATTR_UNIT_FN: lambda x: None,
         ATTR_DEVICE_CLASS: None,
         ATTR_VALUE_FN: lambda x: x._power_state,
-        ATTR_ENABLED_FN: lambda x: x._,
+        ATTR_ENABLED_FN: lambda x: True,
     },
 }
 

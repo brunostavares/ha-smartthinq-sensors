@@ -80,7 +80,7 @@ class AcDevice(Device):
         super().__init__(client, device, AcStatus(self, None))
 
     def reset_status(self):
-        self._status = DryerStatus(self, None)
+        self._status = AcStatus(self, None)
         return self._status
 
     def poll(self) -> Optional["AcStatus"]:
@@ -138,23 +138,22 @@ class AcStatus(DeviceStatus):
         return power
 
     def _get_ac_swing_mode(self, key):
-        mode = self.data.get(key)
+        mode = self._data.get(key)
         if not mode:
             return STATE_OPTIONITEM_NONE
         return STATE_AC_SWINGS.get(mode)
 
     def _get_fan(self, key):
-        fan = self.data.get(key)
+        fan = self._data.get(key)
         if not fan:
             return STATE_OPTIONITEM_NONE
         return STATE_AC_WINDS.get(fan)
 
     def _get_operation_mode(self, key):
-        _LOGGER.warning(self._data)
-        operation = self.data.get(key)
-        if not operation:
+        op = self.lookup_enum(key)
+        if not op:
             return STATE_OPTIONITEM_NONE
-        return STATE_AC_MODES.get(operation)
+        return STATE_AC_MODES.get(op)
 
     @property
     def is_on(self):
