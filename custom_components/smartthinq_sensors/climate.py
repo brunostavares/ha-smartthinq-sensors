@@ -315,6 +315,7 @@ class LGESensor(ClimateEntity):
 
     async def set_hvac_mode(self, hvac_mode):
         """Set new target hvac mode."""
+        self._api.loucura()
 
     async def set_fan_mode(self, fan_mode):
         """Set new target fan mode."""

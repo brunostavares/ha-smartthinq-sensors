@@ -793,7 +793,10 @@ class Device(object):
         if not self._should_poll:
             return
         self._client.session.delete_permission(self._device_info.id)
-
+    
+    def loucura(self):
+        _LOGGER.warning("QUE LOUCO!")
+        
     def device_poll(self, snapshot_key=""):
         """Poll the device's current state.
         
