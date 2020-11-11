@@ -175,6 +175,10 @@ class LGESensor(ClimateEntity):
         return self._def[ATTR_ICON]
 
     @property
+    def hvac_mode(self):
+        return c_const.HVAC_MODE_COOL
+
+    @property
     def is_on(self):
         """Return the state of the binary sensor."""
         if self._is_binary:
@@ -184,14 +188,14 @@ class LGESensor(ClimateEntity):
             return True if ret_val == STATE_ON else False
         return False
 
-    @property
-    def state(self):
-        """Return the state of the sensor."""
-        if not self.available:
-            return STATE_UNAVAILABLE
-        if self._is_binary:
-            return STATE_ON if self.is_on else STATE_OFF
-        return self._def[ATTR_VALUE_FN](self)
+    # @property
+    # def state(self):
+    #     """Return the state of the sensor."""
+    #     if not self.available:
+    #         return STATE_UNAVAILABLE
+    #     if self._is_binary:
+    #         return STATE_ON if self.is_on else STATE_OFF
+    #     return self._def[ATTR_VALUE_FN](self)
 
     @property
     def available(self) -> bool:
@@ -276,9 +280,7 @@ class LGESensor(ClimateEntity):
     def target_temperature_step(self):
         return 1
 
-    @property
-    def hvac_mode(self):
-        return self._api.ac_operation_mode
+
 
     @property
     def hvac_modes(self):
