@@ -272,9 +272,9 @@ class LGESensor(ClimateEntity):
     def target_temperature_low(self):
         return 18
 
-    @property
-    def target_temperature_step(self):
-        return 1
+#    @property
+#    def target_temperature_step(self):
+#        return 1
 
     @property
     def hvac_mode(self):
@@ -282,7 +282,7 @@ class LGESensor(ClimateEntity):
 
     @property
     def hvac_modes(self):
-        return ["aa","bb","cc"]
+        return [c_const.HVAC_MODE_COOL, c_const.HVAC_MODE_FAN_ONLY, c_const.HVAC_MODE_AUTO, c_const.HVAC_MODE_HEAT, c_const.HVAC_MODE_DRY]
 
     @property
     def fan_mode(self):
@@ -309,16 +309,16 @@ class LGESensor(ClimateEntity):
             c_const.SUPPORT_SWING_MODE
         )
 
-    async def async_set_hvac_mode(self, hvac_mode):
+    async def set_hvac_mode(self, hvac_mode):
         """Set new target hvac mode."""
 
-    async def async_set_fan_mode(self, fan_mode):
+    async def set_fan_mode(self, fan_mode):
         """Set new target fan mode."""
 
-    async def async_set_swing_mode(self, swing_mode):
+    async def set_swing_mode(self, swing_mode):
         """Set new target swing operation."""
 
-    async def async_set_temperature(self, **kwargs):
+    async def set_temperature(self, **kwargs):
         """Set new target temperature."""
 
 class LGEAcSensor(LGESensor):
