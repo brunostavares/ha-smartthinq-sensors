@@ -172,6 +172,10 @@ class LGESensor(ClimateEntity):
     def icon(self):
         """Return the icon to use in the frontend, if any."""
         return self._def[ATTR_ICON]
+    
+    @property
+    def fan_mode(self):
+        return self._api.state.ac_fan_mode
 
     @property
     def hvac_mode(self):
@@ -282,10 +286,6 @@ class LGESensor(ClimateEntity):
     @property
     def hvac_modes(self):
         return [c_const.HVAC_MODE_COOL, c_const.HVAC_MODE_FAN_ONLY, c_const.HVAC_MODE_AUTO, c_const.HVAC_MODE_HEAT, c_const.HVAC_MODE_DRY]
-
-    @property
-    def fan_mode(self):
-        return self._api.ac_fan_mode
 
     @property
     def fan_modes(self):

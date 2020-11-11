@@ -144,7 +144,7 @@ class AcStatus(DeviceStatus):
         return STATE_AC_SWINGS.get(mode)
 
     def _get_fan(self, key):
-        fan = self._data.get(key)
+        fan = self.lookup_enum(key)
         if not fan:
             return STATE_OPTIONITEM_NONE
         return STATE_AC_WINDS.get(fan)
