@@ -331,7 +331,6 @@ class LGEAcSensor(LGESensor):
             return None
 
         data = {
-            ATTR_TEMP_UNIT: self._temp_unit,
             ATTR_AC_CURRENT_TEMP: self._ac_current_temp,
             ATTR_AC_POWER_CONSUMPTION: self._ac_power_consumption,
             #ATTR_RUN_COMPLETED: self._run_completed,
