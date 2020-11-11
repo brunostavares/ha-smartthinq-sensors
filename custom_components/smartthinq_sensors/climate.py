@@ -145,73 +145,73 @@ class LGESensor(ClimateEntity):
         else:
             return ":".join(remain_time)
 
-    # @property
-    # def name(self) -> str:
-    #     """Return the name of the sensor."""
-    #     if self._is_default:
-    #         return self._name_slug
-    #     return f"{self._name_slug} {self._def[ATTR_MEASUREMENT_NAME]}"
+    @property
+    def name(self) -> str:
+        """Return the name of the sensor."""
+        if self._is_default:
+            return self._name_slug
+        return f"{self._name_slug} {self._def[ATTR_MEASUREMENT_NAME]}"
 
-    # @property
-    # def unique_id(self) -> str:
-    #     """Return a unique ID."""
-    #     if self._is_default:
-    #         return self._api.unique_id
-    #     return f"{self._api.unique_id}-{self._measurement}"
+    @property
+    def unique_id(self) -> str:
+        """Return a unique ID."""
+        if self._is_default:
+            return self._api.unique_id
+        return f"{self._api.unique_id}-{self._measurement}"
 
-    # @property
-    # def unit_of_measurement(self):
-    #     """Return the unit of measurement."""
-    #     return self._def[ATTR_UNIT_FN](self)
+    @property
+    def unit_of_measurement(self):
+        """Return the unit of measurement."""
+        return self._def[ATTR_UNIT_FN](self)
 
-    # @property
-    # def device_class(self):
-    #     """Return device class."""
-    #     return self._def[ATTR_DEVICE_CLASS]
+    @property
+    def device_class(self):
+        """Return device class."""
+        return self._def[ATTR_DEVICE_CLASS]
 
-    # @property
-    # def icon(self):
-    #     """Return the icon to use in the frontend, if any."""
-    #     return self._def[ATTR_ICON]
+    @property
+    def icon(self):
+        """Return the icon to use in the frontend, if any."""
+        return self._def[ATTR_ICON]
 
-    # @property
-    # def is_on(self):
-    #     """Return the state of the binary sensor."""
-    #     if self._is_binary:
-    #         ret_val = self._def[ATTR_VALUE_FN](self)
-    #         if isinstance(ret_val, bool):
-    #             return ret_val
-    #         return True if ret_val == STATE_ON else False
-    #     return False
+    @property
+    def is_on(self):
+        """Return the state of the binary sensor."""
+        if self._is_binary:
+            ret_val = self._def[ATTR_VALUE_FN](self)
+            if isinstance(ret_val, bool):
+                return ret_val
+            return True if ret_val == STATE_ON else False
+        return False
 
-    # @property
-    # def state(self):
-    #     """Return the state of the sensor."""
-    #     if not self.available:
-    #         return STATE_UNAVAILABLE
-    #     if self._is_binary:
-    #         return STATE_ON if self.is_on else STATE_OFF
-    #     return self._def[ATTR_VALUE_FN](self)
+    @property
+    def state(self):
+        """Return the state of the sensor."""
+        if not self.available:
+            return STATE_UNAVAILABLE
+        if self._is_binary:
+            return STATE_ON if self.is_on else STATE_OFF
+        return self._def[ATTR_VALUE_FN](self)
 
-    # @property
-    # def available(self) -> bool:
-    #     """Return True if entity is available."""
-    #     return self._api.available
+    @property
+    def available(self) -> bool:
+        """Return True if entity is available."""
+        return self._api.available
 
-    # @property
-    # def assumed_state(self) -> bool:
-    #     """Return True if unable to access real state of the entity."""
-    #     return self._api.assumed_state
+    @property
+    def assumed_state(self) -> bool:
+        """Return True if unable to access real state of the entity."""
+        return self._api.assumed_state
 
-    # @property
-    # def state_attributes(self):
-    #     """Return the optional state attributes."""
-    #     return self._api.state_attributes
+    @property
+    def state_attributes(self):
+        """Return the optional state attributes."""
+        return self._api.state_attributes
 
-    # @property
-    # def device_info(self):
-    #     """Return the device info."""
-    #     return self._api.device_info
+    @property
+    def device_info(self):
+        """Return the device info."""
+        return self._api.device_info
 
     @property
     def should_poll(self) -> bool:
@@ -242,13 +242,13 @@ class LGESensor(ClimateEntity):
             self._unsub_dispatcher()
             self._unsub_dispatcher = None
 
-    # @property
-    # def _power_state(self):
-    #     """Current power state"""
-    #     if self._api.state:
-    #         if self._api.state.is_on:
-    #             return STATE_ON
-    #     return STATE_OFF
+    @property
+    def _power_state(self):
+        """Current power state"""
+        if self._api.state:
+            if self._api.state.is_on:
+                return STATE_ON
+        return STATE_OFF
 
 # For Climate platform
 
@@ -324,67 +324,67 @@ class LGESensor(ClimateEntity):
 class LGEAcSensor(LGESensor):
     """A sensor to monitor LGE Dryer devices"""
 
-    # @property
-    # def device_state_attributes(self):
-    #     """Return the optional state attributes."""
-    #     if not self._is_default:
-    #         return None
+    @property
+    def device_state_attributes(self):
+        """Return the optional state attributes."""
+        if not self._is_default:
+            return None
 
-    #     data = {
-    #         ATTR_AC_CURRENT_TEMP: self._ac_current_temp,
-    #         ATTR_AC_POWER_CONSUMPTION: self._ac_power_consumption,
-    #         #ATTR_RUN_COMPLETED: self._run_completed,
-    #         #ATTR_ERROR_STATE: self._error_state,
-    #         #ATTR_ERROR_MSG: self._error_msg,
-    #         ATTR_RUN_STATE: self._current_run_state,
-    #         #ATTR_PRE_STATE: self._pre_state,
-    #         #ATTR_CURRENT_COURSE: self._current_course,
-    #         #ATTR_TEMPCONTROL_OPTION_STATE: self._tempcontrol_option_state,
-    #         #ATTR_DRYLEVEL_OPTION_STATE: self._drylevel_option_state,
-    #         # ATTR_TIMEDRY_OPTION_STATE: self._timedry_option_state,
-    #         #ATTR_REMAIN_TIME: self._remain_time,
-    #         #ATTR_INITIAL_TIME: self._initial_time,
-    #         #ATTR_RESERVE_TIME: self._reserve_time,
-    #         #ATTR_DOORLOCK_MODE: self._doorlock_mode,
-    #         #ATTR_CHILDLOCK_MODE: self._childlock_mode,
-    #     }
-    #     return data
+        data = {
+            ATTR_AC_CURRENT_TEMP: self._ac_current_temp,
+            ATTR_AC_POWER_CONSUMPTION: self._ac_power_consumption,
+            #ATTR_RUN_COMPLETED: self._run_completed,
+            #ATTR_ERROR_STATE: self._error_state,
+            #ATTR_ERROR_MSG: self._error_msg,
+            ATTR_RUN_STATE: self._current_run_state,
+            #ATTR_PRE_STATE: self._pre_state,
+            #ATTR_CURRENT_COURSE: self._current_course,
+            #ATTR_TEMPCONTROL_OPTION_STATE: self._tempcontrol_option_state,
+            #ATTR_DRYLEVEL_OPTION_STATE: self._drylevel_option_state,
+            # ATTR_TIMEDRY_OPTION_STATE: self._timedry_option_state,
+            #ATTR_REMAIN_TIME: self._remain_time,
+            #ATTR_INITIAL_TIME: self._initial_time,
+            #ATTR_RESERVE_TIME: self._reserve_time,
+            #ATTR_DOORLOCK_MODE: self._doorlock_mode,
+            #ATTR_CHILDLOCK_MODE: self._childlock_mode,
+        }
+        return data
 
-    # @property
-    # def _run_completed(self):
-    #     return STATE_ON
+    @property
+    def _run_completed(self):
+        return STATE_ON
 
-    # @property
-    # def _error_state(self):
-    #     if self._api.state:
-    #         if self._api.state.is_error:
-    #             # self._api.state = AcStatus ac.py
-    #             return STATE_ON
-    #     return STATE_OFF
+    @property
+    def _error_state(self):
+        if self._api.state:
+            if self._api.state.is_error:
+                # self._api.state = AcStatus ac.py
+                return STATE_ON
+        return STATE_OFF
 
-    # @property
-    # def _error_msg(self):
-    #     if self._api.state:
-    #         error = self._api.state.error_state
-    #         return error
-    #     return "-"
+    @property
+    def _error_msg(self):
+        if self._api.state:
+            error = self._api.state.error_state
+            return error
+        return "-"
 
-    # @property
-    # def _current_run_state(self):
-    #     if self._api.state:
-    #         run_state = self._api.state.run_state
-    #         return run_state
-    #     return "-"
+    @property
+    def _current_run_state(self):
+        if self._api.state:
+            run_state = self._api.state.run_state
+            return run_state
+        return "-"
 
-    # @property
-    # def _temp_unit(self):
-    #     return TEMP_CELSIUS
-    # @property
-    # def _energy_unit(self):
-    #     return ENERGY_KILO_WATT_HOUR
-    # @property
-    # def _ac_current_temp(self):
-    #     return self._api.state.ac_current_temp
-    # @property
-    # def _ac_power_consumption(self):
-    #     return self._api.state.ac_power_consumpion
+    @property
+    def _temp_unit(self):
+        return TEMP_CELSIUS
+    @property
+    def _energy_unit(self):
+        return ENERGY_KILO_WATT_HOUR
+    @property
+    def _ac_current_temp(self):
+        return self._api.state.ac_current_temp
+    @property
+    def _ac_power_consumption(self):
+        return self._api.state.ac_power_consumpion
