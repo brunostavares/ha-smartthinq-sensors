@@ -322,9 +322,10 @@ class LGESensor(ClimateEntity):
     async def set_swing_mode(self, swing_mode):
         """Set new target swing operation."""
 
-    async def set_temperature(self, **kwargs):
+    def set_temperature(self, **kwargs):
         """Set new target temperature."""
-        _LOGGER.warning(self._api._device.post_request("airState.tempState.target", kwargs['temperature']))
+        temperature = kwargs["temperature"]
+        _LOGGER.warning(self._api._device.post_request("airState.tempState.target", temperature))
 
 class LGEAcSensor(LGESensor):
     """A sensor to monitor LGE Dryer devices"""
