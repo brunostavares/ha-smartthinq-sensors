@@ -177,9 +177,6 @@ def lgedm2_post(
         timeout=DEFAULT_TIMEOUT,
     )
 
-    if res == 404
-        raise exc.APIError("-1","404 - not found")
-
     msg = res.json()
     _LOGGER.debug("lgedm2_post after: %s", msg)
 

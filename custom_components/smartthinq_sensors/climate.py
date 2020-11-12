@@ -324,7 +324,7 @@ class LGESensor(ClimateEntity):
 
     async def set_temperature(self, **kwargs):
         """Set new target temperature."""
-        _LOGGER.warning(self._api._device.post_request("airState.tempState.target", kwargs))
+        _LOGGER.warning(self._api._device.post_request("airState.tempState.target", kwargs['temperature']))
 
 class LGEAcSensor(LGESensor):
     """A sensor to monitor LGE Dryer devices"""
