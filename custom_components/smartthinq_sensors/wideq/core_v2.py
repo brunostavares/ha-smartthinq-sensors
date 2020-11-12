@@ -166,6 +166,7 @@ def lgedm2_post(
     _LOGGER.debug("lgedm2_post before: %s", url)
 
     res = requests.post(
+        url,
         data,
         headers=thinq2_headers(
             access_token=access_token,
