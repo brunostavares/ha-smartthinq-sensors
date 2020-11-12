@@ -151,7 +151,6 @@ def thinq2_get(
         raise exc.APIError(code, "error")
     return out["result"]
 
-
 def lgedm2_post(
     url,
     data=None,
@@ -166,13 +165,8 @@ def lgedm2_post(
 
     _LOGGER.debug("lgedm2_post before: %s", url)
 
-    s = requests.Session()
-    if use_tlsv1:
-        s.mount(url, core.Tlsv1HttpAdapter())
-
-    res = s.post(
-        url,
-        json={core.DATA_ROOT: data},
+    res = requests.post(
+        data,
         headers=thinq2_headers(
             access_token=access_token,
             user_number=user_number,
@@ -183,23 +177,24 @@ def lgedm2_post(
         timeout=DEFAULT_TIMEOUT,
     )
 
-    out = res.json()
-    _LOGGER.debug("lgedm2_post after: %s", out)
+    if res == 404
+        raise exc.APIError("-1","404 - not found")
 
-    msg = out.get(core.DATA_ROOT)
+    msg = res.json()
+    _LOGGER.debug("lgedm2_post after: %s", msg)
+
     if not msg:
-        raise exc.APIError("-1", out)
+        raise exc.APIError("-1", msg)
 
-    if "returnCd" in msg:
-        code = msg["returnCd"]
+    if "resultCode" in msg:
+        code = msg["resultCode"]
         if code != "0000":
-            message = msg["returnMsg"]
+            message = msg["result"]
             if code in API2_ERRORS:
                 raise API2_ERRORS[code]()
             raise exc.APIError(code, message)
 
     return msg
-
 
 def gateway_info(country, language):
     """ TODO
@@ -412,7 +407,7 @@ class Session(object):
 
     def post2(self, deviceid, topic, cmnd):
 
-        url = self.auth.gateway.api_root + "/service/devices/" + deviceid + "/control-sync"
+        url = urljoin(self.auth.gateway.api2_root,"/v1/service/devices/" + deviceid + "/control-sync")
         data_json = {
         "command": "Set",
         "ctrlKey": "basicCtrl",
@@ -420,7 +415,7 @@ class Session(object):
         "dataValue": cmnd
         }
         data = json.dumps(data_json)
-        
+
         return lgedm2_post(
             url,
             data,
