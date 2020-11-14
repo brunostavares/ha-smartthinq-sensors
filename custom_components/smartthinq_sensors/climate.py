@@ -33,6 +33,7 @@ from .const import DOMAIN, LGE_DEVICES
 from homeassistant.components.climate import const as c_const
 
 from . import LGEDevice
+from .wideq.ac import STATE_AC_MODES
 
 # sensor definition
 ATTR_MEASUREMENT_NAME = "measurement_name"
@@ -59,6 +60,17 @@ ATTR_AC_CURRENT_TEMP = "tempState_current"
 ATTR_AC_POWER_CONSUMPTION = "consumo_de_energia"
 ATTR_AC_MAX_TEMP = 30
 ATTR_AC_MIN_TEMP = 18
+
+# ac HVAC modes for set_hvca
+
+THINQ_HVAC_MODES {
+    c_const.HVAC_MODE_OFF: 100,
+    c_const.HVAC_MODE_COOL: "0",
+    c_const.HVAC_MODE_AUTO: "3",
+    c_const.HVAC_MODE_DRY: "1",
+    c_const.HVAC_MODE_HEAT: "4",
+    c_const.HVAC_MODE_FAN_ONLY: "2"
+}
 
 STATE_LOOKUP = {
     STATE_OPTIONITEM_OFF: STATE_OFF,
@@ -204,14 +216,6 @@ class LGESensor(ClimateEntity):
             return True if ret_val == STATE_ON else False
         return False
 
-    # @property
-    # def state(self):
-    #     """Return the state of the sensor."""
-    #     if not self.available:
-    #         return STATE_UNAVAILABLE
-    #     if self._is_binary:
-    #         return STATE_ON if self.is_on else STATE_OFF
-    #     return self._def[ATTR_VALUE_FN](self)
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
@@ -278,13 +282,6 @@ class LGESensor(ClimateEntity):
     def target_temperature(self):
         return self._api.state.ac_target_temperature
     
-    # @property
-    # def target_temperature_high(self):
-    #     return 30
-
-    # @property
-    # def target_temperature_low(self):
-    #     return 18
     @property
     def min_temp(self):
         return ATTR_AC_MIN_TEMP
@@ -299,7 +296,8 @@ class LGESensor(ClimateEntity):
 
     @property
     def hvac_modes(self):
-        return [c_const.HVAC_MODE_OFF, c_const.HVAC_MODE_COOL, c_const.HVAC_MODE_FAN_ONLY, c_const.HVAC_MODE_AUTO, c_const.HVAC_MODE_HEAT, c_const.HVAC_MODE_DRY]
+        return [v for k, v in STATE_AC_MODES.items()]
+#[c_const.HVAC_MODE_OFF, c_const.HVAC_MODE_COOL, c_const.HVAC_MODE_FAN_ONLY, c_const.HVAC_MODE_AUTO, c_const.HVAC_MODE_HEAT, c_const.HVAC_MODE_DRY]
 
     @property
     def fan_modes(self):
@@ -315,6 +313,7 @@ class LGESensor(ClimateEntity):
 
     def set_hvac_mode(self, hvac_mode):
         """Set new target hvac mode."""
+        self._api._device.post_request("airState.opMode", THINQ_HVAC_MODES.get(hvac_mode))
 
     async def set_fan_mode(self, fan_mode):
         """Set new target fan mode."""
