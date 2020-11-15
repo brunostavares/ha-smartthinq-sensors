@@ -2,6 +2,7 @@
 # DEPENDENCIES = ['smartthinq']
 
 import logging
+import json
 from datetime import timedelta
 
 from .wideq.device import (
@@ -55,6 +56,10 @@ ATTR_CURRENT_COURSE = "current_course"
 ATTR_ERROR_STATE = "error_state"
 ATTR_ERROR_MSG = "error_message"
 
+ATTR_SET_TEMP = "airState.tempState.target"
+ATTR_SET_HVAC
+ATTR_SET_OPERATION
+
 # ac sensor attributes
 ATTR_AC_CURRENT_TEMP = "tempState_current"
 ATTR_AC_POWER_CONSUMPTION = "consumo_de_energia"
@@ -62,8 +67,7 @@ ATTR_AC_MAX_TEMP = 30
 ATTR_AC_MIN_TEMP = 18
 
 # ac HVAC modes for set_hvca
-
-THINQ_HVAC_MODES {
+THINQ_HVAC_MODES = {
     c_const.HVAC_MODE_OFF: 100,
     c_const.HVAC_MODE_COOL: "0",
     c_const.HVAC_MODE_AUTO: "3",
@@ -171,15 +175,6 @@ class LGESensor(ClimateEntity):
         if self._is_default:
             return self._api.unique_id
         return f"{self._api.unique_id}-{self._measurement}"
-    # @property
-    # def unit_of_measurement(self):
-    #     """Return the unit of measurement."""
-    #     return self._def[ATTR_UNIT_FN](self)
-
-    # @property
-    # def device_class(self):
-    #     """Return device class."""
-    #     return self._def[ATTR_DEVICE_CLASS]
 
     @property
     def icon(self):
@@ -297,7 +292,6 @@ class LGESensor(ClimateEntity):
     @property
     def hvac_modes(self):
         return [v for k, v in STATE_AC_MODES.items()]
-#[c_const.HVAC_MODE_OFF, c_const.HVAC_MODE_COOL, c_const.HVAC_MODE_FAN_ONLY, c_const.HVAC_MODE_AUTO, c_const.HVAC_MODE_HEAT, c_const.HVAC_MODE_DRY]
 
     @property
     def fan_modes(self):
@@ -314,6 +308,8 @@ class LGESensor(ClimateEntity):
     def set_hvac_mode(self, hvac_mode):
         """Set new target hvac mode."""
         self._api._device.post_request("airState.opMode", THINQ_HVAC_MODES.get(hvac_mode))
+        self._api._device._client._load_devices(True)
+        self.update
 
     async def set_fan_mode(self, fan_mode):
         """Set new target fan mode."""
@@ -325,6 +321,19 @@ class LGESensor(ClimateEntity):
         """Set new target temperature."""
         temperature = kwargs["temperature"]
         _LOGGER.warning(self._api._device.post_request("airState.tempState.target", temperature))
+
+    def create_datajson(self, topic, value, cmnd):
+        """create data json to be posted"""
+        data_json = {
+            "command": cmnd,
+            "ctrlKey": "basicCtrl",
+            "dataKey": topic,
+            "dataValue": value
+        }
+        data = json.dumps(data_json)
+        return data
+
+
 
 class LGEAcSensor(LGESensor):
     """A sensor to monitor LGE Dryer devices"""
